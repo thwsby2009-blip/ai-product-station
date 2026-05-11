@@ -84,7 +84,6 @@ past_mode = st.sidebar.selectbox(
     "🤖 AI 數據整合實作 (115.04.20)",
     "🐍 Google Colab"
 ]
-)
 
 st.sidebar.divider()
 
