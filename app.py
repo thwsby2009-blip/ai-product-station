@@ -177,11 +177,76 @@ elif past_mode == "6. AI 數據整合實作 (4/27)":
 
 # ==========================================
 # Colab
-# ==========================================
 elif today_mode == "🐍 Google Colab":
-    st.header("🐍 Google Colab")
-    st.link_button("開啟 Colab", "https://colab.research.google.com/")
 
+    st.title("🐍 Google Colab 雲端開發工作站")
+
+    st.markdown("""
+    ## 🚀 今日實作目標
+    進入 Google Colab 進行 AI / Python 雲端開發
+    """)
+
+    # ======================
+    # 功能說明區（補回來的核心）
+    # ======================
+    st.subheader("📌 Colab 功能說明")
+
+    st.info("""
+    ✔ 無需安裝 Python  
+    ✔ 支援 GPU / TPU  
+    ✔ 可直接跑 AI 模型  
+    ✔ 自動存到 Google Drive  
+    """)
+
+    # ======================
+    # 快速入口
+    # ======================
+    st.subheader("🔗 快速進入")
+
+    st.link_button(
+        "🔥 開啟 Google Colab",
+        "https://colab.research.google.com/",
+        use_container_width=True
+    )
+
+    st.link_button(
+        "📘 官方 Python 教學 Notebook",
+        "https://colab.research.google.com/notebooks/intro.ipynb",
+        use_container_width=True
+    )
+
+    # ======================
+    # 教學流程（你原本缺掉的核心）
+    # ======================
+    st.subheader("🧭 建議學習流程")
+
+    st.markdown("""
+    1. 開啟 Colab  
+    2. 登入 Google 帳號  
+    3. 新增 Notebook  
+    4. 測試 Python 基本語法  
+    5. 嘗試 import numpy / pandas  
+    """)
+
+    # ======================
+    # 範例 code（這是最重要補回）
+    # ======================
+    st.subheader("💡 第一個測試程式")
+
+    st.code("""
+import numpy as np
+import pandas as pd
+
+print("Hello Colab!")
+
+data = np.random.randint(1, 100, 10)
+print(data)
+""", language="python")
+
+    # ======================
+    # 提醒
+    # ======================
+    st.warning("💡 提醒：請確認右上角已登入 Google 帳號")
 # ==========================================
 # fallback
 # ==========================================
