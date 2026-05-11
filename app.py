@@ -16,3 +16,22 @@ lesson_ui = st.selectbox("課程選擇", list(options.keys()))
 lesson_key = options[lesson_ui]
 
 st.write("你選的是：", lesson_key)
+if lesson_key == "lesson_0":
+    from modules.lesson_0 import run
+    run()
+
+elif lesson_key == "lesson_1":
+    from modules.lesson_1 import run
+    run()
+
+elif lesson_key == "lesson_420":
+    from modules.lesson_420 import run
+    run()
+
+elif lesson_key == "lesson_427":
+    from modules.lesson_427 import run
+    run()
+
+elif lesson_key == "colab":
+    from modules.colab import run
+    run()
