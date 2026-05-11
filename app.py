@@ -115,7 +115,7 @@ elif today_mode == "🤖 AI 數據整合實作 (115.04.20)":
         selected_list = edited_df[edited_df["勾選"] == True]["標題內容"].tolist()
 
         st.divider()
-        st.subheader("🧠 第二步：Gemini 2.0 Flash 深度分析")
+        st.subheader("🧠 第二步：Gemini 2.5 Flash 深度分析")
         
         if st.button("🚀 啟動 AI 智慧總結", type="primary"):
             if not st.session_state['google_api_key']:
