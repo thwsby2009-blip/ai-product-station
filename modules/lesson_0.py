@@ -2,7 +2,7 @@ import streamlit as st
 
 def run():
 
-    st.title("🎓 AI 課程總入口 (Lesson 0)")
+    st.title("🎓 AI 課程總入口 (課程1)")
 
     st.sidebar.subheader("📚 課程導覽")
 
