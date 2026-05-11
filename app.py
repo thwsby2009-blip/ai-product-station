@@ -222,7 +222,7 @@ elif today_mode == "🤖 AI 數據整合實作 (115.04.20)":
             try:
                 genai.configure(api_key=st.session_state['google_api_key'])
                 model = genai.GenerativeModel('gemini-2.0-flash')
-                prompt = "請用繁體中文整理並簡短評論："
+                prompt ="請用繁體中文整理並簡短評論：
 " + "
 ".join(st.session_state['selected_data'])
                 response = model.generate_content(prompt)
