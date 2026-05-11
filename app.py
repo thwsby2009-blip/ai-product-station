@@ -42,7 +42,7 @@ past_mode = st.sidebar.selectbox(
 )
     # --- 主畫面：數據處理區 ---
 st.header("🔍 模組二：資訊過濾與精選")
-    if st.session_state['raw_data']:
+      if st.session_state['raw_data']:
         search_query = st.text_input("🎯 關鍵字快速過濾：", placeholder="例如：股市、AI...")
         filtered_list = [t for t in st.session_state['raw_data'] if search_query.lower() in t.lower()]
         
