@@ -8,3 +8,4 @@ yfinance
 requests
 openai
 python-dotenv
+google-generativeai
