@@ -80,11 +80,10 @@ past_mode = st.sidebar.selectbox(
         "3. Luma AI 影片生成 (生長演練)",
         "4. 2D 轉 3D 終極實作",
         "5. 專屬作業：Gemini 3D 公仔生成"
-    ]
-)",
-        "🤖 AI 數據整合實作 (115.04.20)",
-        "🐍 Google Colab"
-    ]
+   [
+    "🤖 AI 數據整合實作 (115.04.20)",
+    "🐍 Google Colab"
+]
 )
 
 st.sidebar.divider()
