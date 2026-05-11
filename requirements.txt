@@ -1,1 +1,10 @@
 streamlit
+pandas
+numpy
+plotly
+matplotlib
+seaborn
+yfinance
+requests
+openai
+python-dotenv
