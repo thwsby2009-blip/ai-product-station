@@ -6,195 +6,157 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib.gridspec as gs
 import os
+import requests
+from bs4 import BeautifulSoup
 
-# 1. 頁面基礎設定
+# ==========================================
+# 0. 全域設定與 Session State 初始化
+# ==========================================
 st.set_page_config(
     page_title="AI 產品設計全流程工作站",
     page_icon="🤖",
     layout="wide"
 )
 
-# --- 側邊欄設計 ---
+# 必須放在所有邏輯之前，確保任何時候讀取都不會 KeyError
+if 'raw_data' not in st.session_state:
+    st.session_state['raw_data'] = []
+if 'openrouter_key' not in st.session_state:
+    st.session_state['openrouter_key'] = ""
+
+# ==========================================
+# 1. 側邊欄選單設計
+# ==========================================
 st.sidebar.title("🎓 課程工作站")
-st.sidebar.info("講師：嚴 稑 臻 | 網管開發助手：Gemini")
+st.sidebar.info("講師：嚴 稑 臻 | 助手：Gemini")
 
-# --- 側邊欄：分組選單 ---
-st.sidebar.subheader("📅 今日課程專區 (115.04.27)")
+st.sidebar.subheader("📅 今日課程專區")
 today_mode = st.sidebar.radio(
-    "今日實作項目：",
-    ["📊 Pandas 數據分析 (P77-P90)", "🐍 Google Colab 雲端開發實作"]
-)
-
-st.sidebar.divider() 
-
-st.sidebar.subheader("⏪ 上次課程回顧")
-past_mode = st.sidebar.selectbox(
-    "回顧往期單元：",
+    "請選擇實作單元：",
     [
-        "--- 請選擇 ---",
-        "0. 帳號註冊與環境檢查 (必做)",
-        "1. ChatGPT 文字構思",
-        "2. DALL-E 圖像生成 (Gemini 指令補強)",
-        "3. Luma AI 影片生成 (生長演練)",
-        "4. 2D 轉 3D 終極實作",
-        "5. 專屬作業：Gemini 3D 公仔生成"
+        "📊 Pandas 數據分析 (115.04.27)", 
+        "🤖 AI 數據整合實作 (115.04.20)", 
+        "🐍 Google Colab 雲端開發"
     ]
 )
-    # --- 主畫面：數據處理區 ---
-st.header("🔍 模組二：資訊過濾與精選")
-if st.session_state['raw_data']:
-        search_query = st.text_input("🎯 關鍵字快速過濾：", placeholder="例如：股市、AI...")
-        filtered_list = [t for t in st.session_state['raw_data'] if search_query.lower() in t.lower()]
-        
-        # 建立勾選表格
-        df_to_select = pd.DataFrame({"選擇": [False] * len(filtered_list), "新聞標題內容": filtered_list})
-        edited_df = st.data_editor(
-            df_to_select,
-            hide_index=True,
-            column_config={
-                "選擇": st.column_config.CheckboxColumn(required=False),
-                "新聞標題內容": st.column_config.TextColumn(width="large")
-            },
-            use_container_width=True,
-            key="news_editor"
-        )
-        selected_titles = edited_df[edited_df["選擇"] == True]["新聞標題內容"].tolist()
-        
-        if selected_titles:
-            st.success(f"已選取 {len(selected_titles)} 條新聞")
 
-        # --- 模組三：AI 分析 ---
-        st.divider()
-        st.header("🤖 模組三：多模型調度分析")
-        
-        target_model = st.selectbox(
-            "選擇 AI 模型 (免費模型推薦)：",
-            [
-                "google/gemini-flash-1.5-exp:free",
-                "meta-llama/llama-3.1-8b-instruct:free",
-                "mistralai/mistral-7b-instruct:free",
-                "qwen/qwen-2-7b-instruct:free"
-            ]
-        )
+st.sidebar.divider()
 
-        if st.button("🚀 啟動 AI 進行深度分析", type="primary"):
-            if not st.session_state['openrouter_key']:
-                st.error("❌ 請先在左側輸入 OpenRouter API Key！")
-            elif not selected_titles:
-                st.warning("⚠️ 請勾選新聞。")
-            else:
-                try:
-                    with st.spinner(f"🧠 {target_model} 分析中..."):
-                        context = "\n".join(selected_titles)
-                        prompt = f"請擔任專業評論員，針對以下新聞內容進行繁體中文的趨勢總結與幽默短評，最後給讀者一個建議：\n\n{context}"
-                        
-                        response = requests.post(
-                            url="https://openrouter.ai/api/v1/chat/completions",
-                            headers={
-                                "Authorization": f"Bearer {st.session_state['openrouter_key']}",
-                                "HTTP-Referer": "http://localhost:8501",
-                                "X-Title": "Student Demo",
-                            },
-                            json={
-                                "model": target_model,
-                                "messages": [{"role": "user", "content": prompt}]
-                            },
-                            timeout=60
-                        )
-                        result = response.json()
-                        st.markdown(result['choices'][0]['message']['content'])
-                        st.balloons()
-                except Exception as e:
-                    st.error(f"分析失敗：{e}")
-        else:
-                    st.info("👋 請先在左側邊欄點擊「執行即時抓取」來獲取數據來源。")
+st.sidebar.subheader("⏪ 往期課程回顧")
+past_mode = st.sidebar.selectbox(
+    "回顧單元：",
+    [
+        "--- 請選擇 ---",
+        "0. 帳號註冊與環境檢查",
+        "1. ChatGPT 文字構思",
+        "2. DALL-E 圖像生成",
+        "3. Luma AI 影片生成",
+        "4. 2D 轉 3D 實作",
+        "5. 專屬作業：Gemini 3D 公仔"
+    ]
+)
+
 # ==========================================
-# ═══ 核心邏輯：4月27日 Pandas 數據分析 ═══
+# 2. 主頁面邏輯判斷
 # ==========================================
+
+# --- 2A. 4月27日：Pandas 數據分析 ---
 if today_mode == "📊 Pandas 數據分析 (115.04.27)" and past_mode == "--- 請選擇 ---":
-    # (此處放你原本 P77-P90 的程式碼，記得維持 4 格縮排)
-    st.header("🎓 Pandas 全流程實作 (P77-P90)")
-    # ... (省略) ...
-
-# ==========================================
-# ═══ 核心邏輯：4月20日 跨模型 AI 數據整合 ═══
-# ==========================================
-elif today_mode == "🎨 AI 指令與圖像核心 (115.04.20)" and past_mode == "--- 請選擇 ---":
-    import requests
-    from bs4 import BeautifulSoup
-
-    st.title("🤖 跨模型 AI 數據實作 (去 Google 化版本)")
+    st.title("🎓 Pandas 全流程實作 (P77-P90)")
     
-    # 初始化 session_state
-    if 'raw_data' not in st.session_state: st.session_state['raw_data'] = []
-    if 'openrouter_key' not in st.session_state: st.session_state['openrouter_key'] = ""
+    # 數據補全邏輯
+    if not os.path.exists("data"): os.makedirs("data")
+    path_inc, path_exp = "data/practice_income.csv", "data/practice_expense.csv"
+    if not os.path.exists(path_inc):
+        pd.DataFrame({"年齡組": ["20-30", "30-40"], "月薪": [35000, 48000], "獎金": [5000, 8000]}).to_csv(path_inc, index=False)
+    if not os.path.exists(path_exp):
+        pd.DataFrame({"年齡組": ["20-30", "30-40"], "食衣住行支出": [15000, 20000], "娛樂教育支出": [5000, 8000]}).to_csv(path_exp, index=False)
 
-    # --- 側邊欄設定 ---
+    try:
+        df_inc = pd.read_csv(path_inc)
+        df_exp = pd.read_csv(path_exp)
+        df_inc_avg = df_inc.groupby("年齡組")[["月薪", "獎金"]].mean().reset_index()
+        df_final = pd.merge(df_inc_avg, df_exp, on="年齡組", how="inner")
+        df_final["總收入"] = df_final["月薪"] + df_final["獎金"]
+        df_final["總支出"] = df_final["食衣住行支出"] + df_final["娛樂教育支出"]
+        df_final["儲蓄額"] = df_final["總收入"] - df_final["總支出"]
+
+        st.header("🎛️ 樞紐分析預覽 (P80)")
+        st.dataframe(df_final.pivot_table(index="年齡組", values=["總收入", "總支出", "儲蓄額"]))
+
+        st.divider()
+        st.header("📈 進階圖表實作 (P81)")
+        t1, t2 = st.tabs(["收入佔比", "薪資趨勢"])
+        with t1: st.plotly_chart(px.pie(df_final, values='總收入', names='年齡組'))
+        with t2: st.line_chart(data=df_final, x="年齡組", y=["月薪", "獎金"])
+    except Exception as e:
+        st.error(f"數據加載錯誤: {e}")
+
+# --- 2B. 4月20日：AI 數據整合 (OpenRouter) ---
+elif today_mode == "🤖 AI 數據整合實作 (115.04.20)" and past_mode == "--- 請選擇 ---":
+    st.title("🤖 跨模型 AI 數據實作 (OpenRouter)")
+    st.info("流程：左側輸入 Key -> 抓取資料 -> 勾選 -> AI 分析")
+
     with st.sidebar:
-        st.header("🔑 第一步：AI 設定")
-        st.markdown("[👉 點此申請 OpenRouter Key](https://openrouter.ai/keys)")
-        or_key_input = st.text_input("API Key：", type="password", value=st.session_state['openrouter_key'])
-        if or_key_input: st.session_state['openrouter_key'] = or_key_input
+        st.header("🔑 AI 設定")
+        st.markdown("[👉 申請 OpenRouter Key](https://openrouter.ai/keys)")
+        or_key = st.text_input("OpenRouter Key：", type="password", value=st.session_state['openrouter_key'])
+        if or_key: st.session_state['openrouter_key'] = or_key
 
         st.markdown("---")
-        st.header("📡 第二步：數據來源")
-        source_url = st.text_input("網址：", "https://tw.yahoo.com/")
+        st.header("📡 數據來源")
+        url = st.text_input("抓取網址：", "https://tw.yahoo.com/")
         if st.button("🛰️ 執行即時抓取"):
-            with st.spinner("抓取中..."):
-                try:
-                    headers = {'User-Agent': 'Mozilla/5.0'}
-                    res = requests.get(source_url, headers=headers, timeout=10)
-                    res.encoding = 'utf-8'
-                    soup = BeautifulSoup(res.text, 'html.parser')
-                    titles = [t.get_text().strip() for t in soup.find_all(['h1', 'h2', 'h3', 'a']) if 15 < len(t.get_text().strip()) < 100]
-                    st.session_state['raw_data'] = list(dict.fromkeys(titles))
-                    st.success(f"✅ 成功獲取 {len(st.session_state['raw_data'])} 筆！")
-                except Exception as e:
-                    st.error(f"抓取失敗：{e}")
+            try:
+                res = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
+                res.encoding = 'utf-8'
+                soup = BeautifulSoup(res.text, 'html.parser')
+                titles = [t.get_text().strip() for t in soup.find_all(['h2', 'h3', 'a']) if 15 < len(t.get_text().strip()) < 100]
+                st.session_state['raw_data'] = list(dict.fromkeys(titles))
+                st.success(f"✅ 獲取 {len(st.session_state['raw_data'])} 筆！")
+            except Exception as e:
+                st.error(f"抓取失敗: {e}")
 
-    # --- 主畫面：數據處理區 ---
-    st.header("🔍 模組二：資訊過濾與精選")
-
-    # 關鍵判斷：是否有抓到資料
+    st.header("🔍 資訊過濾與精選")
     if st.session_state['raw_data']:
-        search_query = st.text_input("🎯 關鍵字過濾：")
-        filtered_list = [t for t in st.session_state['raw_data'] if search_query.lower() in t.lower()]
+        search = st.text_input("🎯 關鍵字過濾：")
+        filtered = [t for t in st.session_state['raw_data'] if search.lower() in t.lower()]
         
-        df_to_select = pd.DataFrame({"選擇": [False] * len(filtered_list), "新聞標題內容": filtered_list})
-        edited_df = st.data_editor(df_to_select, hide_index=True, use_container_width=True)
-        selected_titles = edited_df[edited_df["選擇"] == True]["新聞標題內容"].tolist()
+        df_sel = pd.DataFrame({"選擇": [False] * len(filtered), "新聞標題內容": filtered})
+        edited_df = st.data_editor(df_sel, hide_index=True, use_container_width=True, key="editor_420")
+        selected = edited_df[edited_df["選擇"] == True]["新聞標題內容"].tolist()
 
-        # --- 模組三：AI 分析 ---
         st.divider()
-        st.header("🤖 模組三：AI 分析報告")
-        target_model = st.selectbox("選擇模型：", ["google/gemini-flash-1.5-exp:free", "meta-llama/llama-3.1-8b-instruct:free"])
-
+        st.header("🤖 AI 多模型分析")
+        model = st.selectbox("選擇模型：", ["google/gemini-flash-1.5-exp:free", "meta-llama/llama-3.1-8b-instruct:free"])
+        
         if st.button("🚀 啟動 AI 分析", type="primary"):
             if not st.session_state['openrouter_key']:
-                st.error("❌ 沒 Key 啊！請在左側輸入。")
-            elif not selected_titles:
-                st.warning("⚠️ 請勾選要分析的內容。")
+                st.error("❌ 請填寫 API Key")
+            elif not selected:
+                st.warning("⚠️ 請勾選內容")
             else:
                 try:
-                    with st.spinner("AI 思考中..."):
-                        prompt = f"請總結以下新聞趨勢並給予幽默短評：\n\n" + "\n".join(selected_titles)
-                        response = requests.post(
-                            url="https://openrouter.ai/api/v1/chat/completions",
+                    with st.spinner("AI 分析中..."):
+                        prompt = f"請總結以下趨勢並給予幽默短評：\n\n" + "\n".join(selected)
+                        resp = requests.post(
+                            "https://openrouter.ai/api/v1/chat/completions",
                             headers={"Authorization": f"Bearer {st.session_state['openrouter_key']}"},
-                            json={"model": target_model, "messages": [{"role": "user", "content": prompt}]}
+                            json={"model": model, "messages": [{"role": "user", "content": prompt}]}
                         )
-                        st.markdown(response.json()['choices'][0]['message']['content'])
+                        st.markdown(resp.json()['choices'][0]['message']['content'])
                         st.balloons()
                 except Exception as e:
-                    st.error(f"分析失敗：{e}")
-    
-    # 這是原本卡住你的 else：它跟「if st.session_state['raw_data']:」垂直對齊
+                    st.error(f"分析失敗: {e}")
     else:
-        st.info("👋 請先在左側邊欄點擊「執行即時抓取」來獲取數據來源。")
+        st.info("👋 請先在左側邊欄執行抓取數據。")
 
-# ==========================================
-# ═══ 核心邏輯：Google Colab 課程 ═══
-# ==========================================
-elif today_mode == "🐍 Google Colab 雲端開發實作" and past_mode == "--- 請選擇 ---":
+# --- 2C. 雲端開發 ---
+elif today_mode == "🐍 Google Colab 雲端開發" and past_mode == "--- 請選擇 ---":
     st.header("🐍 Google Colab 實作指引")
-    st.link_button("🔥 開啟 Colab", "https://colab.research.google.com/")
+    st.link_button("🔥 開啟 Colab 工作站", "https://colab.research.google.com/")
+
+# --- 2D. 往期回顧 ---
+elif past_mode != "--- 請選擇 ---":
+    st.header(f"⏪ 回顧單元：{past_mode}")
+    st.write("此部分可根據需求放入舊有的教學投影片連結或重點。")
