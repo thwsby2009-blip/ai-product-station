@@ -9,7 +9,7 @@ import google.generativeai as genai
 
 # ==================== UI ====================
 st.set_page_config(page_title="AI券商級看盤系統", layout="wide")
-st.title("📊 AI券商級看盤系統（選股 + K線 + AI分析）")
+st.title("📊 課程3 AI券商級看盤系統（選股 + K線 + AI分析）")
 
 # ==================== SESSION ====================
 if "selected_ticker" not in st.session_state:
