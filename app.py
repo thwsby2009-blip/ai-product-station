@@ -56,12 +56,32 @@ if 'selected_data' not in st.session_state:
 # ==========================================
 # 2. 側邊欄
 # ==========================================
-st.sidebar.title("🎓 嚴老師教學工作站")
+st.sidebar.title("🎓 課程工作站")
+st.sidebar.info("講師：嚴 稑 臻 | 網管開發助手：Gemini")
 
+# 今日課程
+st.sidebar.subheader("📅 今日課程專區 (115.04.20)")
 today_mode = st.sidebar.radio(
-    "📅 今日課程項目：",
+    "今日實作項目：",
+    ["🐍 Google Colab 雲端開發實作"]
+)
+
+st.sidebar.divider()
+
+# 往期課程
+st.sidebar.subheader("⏪ 上次課程回顧")
+past_mode = st.sidebar.selectbox(
+    "回顧往期單元：",
     [
-        "📊 Pandas 數據分析 (P77-P90)",
+        "--- 請選擇 ---",
+        "0. 帳號註冊與環境檢查 (必做)",
+        "1. ChatGPT 文字構思",
+        "2. DALL-E 圖像生成 (Gemini 指令補強)",
+        "3. Luma AI 影片生成 (生長演練)",
+        "4. 2D 轉 3D 終極實作",
+        "5. 專屬作業：Gemini 3D 公仔生成"
+    ]
+)",
         "🤖 AI 數據整合實作 (115.04.20)",
         "🐍 Google Colab"
     ]
@@ -222,7 +242,9 @@ elif today_mode == "🤖 AI 數據整合實作 (115.04.20)":
             try:
                 genai.configure(api_key=st.session_state['google_api_key'])
                 model = genai.GenerativeModel('gemini-2.0-flash')
-                prompt = "請用繁體中文整理並簡短評論：" + " ".join(st.session_state['selected_data'])
+                prompt = "請用繁體中文整理並簡短評論：
+" + "
+".join(st.session_state['selected_data'])
                 response = model.generate_content(prompt)
                 st.markdown(response.text)
             except Exception as e:
@@ -231,27 +253,45 @@ elif today_mode == "🤖 AI 數據整合實作 (115.04.20)":
 # ==========================================
 # 5. Google Colab / 教學連結（修正版）
 # ==========================================
-elif today_mode == "🐍 Google Colab":
-    st.title("🔗 教學資源與常用網站")
+elif today_mode == "🐍 Google Colab 雲端開發實作" and past_mode == "--- 請選擇 ---":
+    st.header("🐍 今日重點：Google Colab 雲端程式開發")
+    st.markdown("""
+    ### 🚀 歡迎來到今日實作單元！
+    本單元將引導您進入 Google Colab 進行高效能的 Python 開發與 AI 模型測試。
 
-    st.subheader("常用網站")
-    st.markdown("- Google Colab: https://colab.research.google.com")
-    st.markdown("- Kaggle: https://www.kaggle.com")
-    st.markdown("- GitHub: https://github.com")
-    st.markdown("- Yahoo 新聞: https://tw.news.yahoo.com")
+    * **無需安裝**：完全在瀏覽器執行。
+    * **GPU 加速**：適合跑複雜的 AI 運算。
+    * **存檔便利**：自動儲存於您的 Google Drive。
+    """)
 
-    if past_mode != "--- 請選擇 ---":
-        st.subheader("⏪ 往期課程內容")
-        st.info(f"目前選擇：{past_mode}")
+    st.link_button("🔥 立即開啟 Google Colab 工作站", "https://colab.research.google.com/", use_container_width=True)
 
-        if past_mode == "1. ChatGPT":
-            st.write("ChatGPT 教學內容區（可再擴充）")
-        elif past_mode == "3. Luma AI":
-            st.write("Luma AI 教學內容區（可再擴充）")
-        elif past_mode == "4. 2D 轉 3D":
-            st.write("2D轉3D教學內容區（可再擴充）")
-        elif past_mode == "5. 植物地圖專案":
-            st.write("植物地圖專案教學內容區（可再擴充）")
+    st.info("💡 提示：進到 Colab 後，請確認右上角是否已登入您的 Google 帳號。")
 
-else:
-    st.info("請從左側選單選擇課程")
+elif past_mode != "--- 請選擇 ---":
+
+    if past_mode == "0. 帳號註冊與環境檢查 (必做)":
+        st.header("🔑 實作前置準備")
+        st.link_button("ChatGPT 登入", "https://chat.openai.com/")
+        st.link_button("Microsoft Designer", "https://designer.microsoft.com/")
+
+    elif past_mode == "1. ChatGPT 文字構思":
+        st.header("🧠 ChatGPT 產品創意發想")
+        st.link_button("🚀 前往 ChatGPT", "https://chat.openai.com/")
+
+    elif past_mode == "2. DALL-E 圖像生成 (Gemini 指令補強)":
+        st.header("🎨 DALL-E 3 圖像核心")
+        st.link_button("🚀 前往 Microsoft Designer", "https://designer.microsoft.com/")
+
+    elif past_mode == "3. Luma AI 影片生成 (生長演練)":
+        st.header("🎬 Luma AI 影片生成")
+        st.link_button("🚀 前往 Luma AI", "https://lumalabs.ai/dream-machine")
+
+    elif past_mode == "4. 2D 轉 3D 終極實作":
+        st.header("🔮 2D 轉 3D 核心實作站")
+        st.link_button("💎 開啟 Meshy AI", "https://app.meshy.ai/")
+        st.link_button("⚡ 開啟 Tripo AI", "https://www.tripo3d.ai/app")
+
+    elif past_mode == "5. 專屬作業：Gemini 3D 公仔生成":
+        st.header("🧸 實作專案：生成你的專屬 3D 公仔")
+        st.link_button("👉 前往 Google Gemini", "https://gemini.google.com/")
