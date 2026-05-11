@@ -106,7 +106,7 @@ if st.session_state['raw_data']:
                         st.balloons()
                 except Exception as e:
                     st.error(f"分析失敗：{e}")
-    else:
+              else:
         st.info("👋 請先在左側邊欄點擊「執行即時抓取」來獲取數據來源。")
 # ==========================================
 # ═══ 核心邏輯 A：4月27日 Pandas 課程 ═══
