@@ -58,7 +58,7 @@ def run():
     # ==========================================
     # 主畫面
     # ==========================================
-    st.title("📊 課程 1：AI 數據分析（Google Gemini版）")
+    st.title("📊 課程 2：AI 數據分析（Google Gemini版）")
 
     if not st.session_state['raw_data']:
         st.info("請先在左側抓取資料")
