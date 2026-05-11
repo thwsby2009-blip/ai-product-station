@@ -42,59 +42,6 @@ past_mode = st.sidebar.selectbox(
 )
 
 # --- 主頁面邏輯判斷 ---
-# ==========================================
-# ═══ 核心邏輯 D：4月20日 跨模型 AI 數據整合 ═══
-# ==========================================
-elif today_mode == "🎨 AI 指令與圖像核心 (115.04.20)" and past_mode == "--- 請選擇 ---":
-    import requests
-    from bs4 import BeautifulSoup
-
-    # 0. 頁面標題與導引
-    st.title("🤖 跨模型 AI 數據實作 (去 Google 化版本)")
-    st.info("本單元練習：左側側邊欄設定 API -> 執行數據爬取 -> 勾選新聞 -> AI 自動分析報告")
-
-    # 初始化 session_state 防止換頁資料流失
-    if 'raw_data' not in st.session_state: st.session_state['raw_data'] = []
-    if 'openrouter_key' not in st.session_state: st.session_state['openrouter_key'] = ""
-
-    # --- 側邊欄：API 與數據抓取設定 ---
-    with st.sidebar:
-        st.header("🔑 第一步：AI 設定")
-        
-        # 補上連結
-        st.markdown("[👉 點此申請 OpenRouter Key](https://openrouter.ai/keys)")
-        
-        or_key_input = st.text_input(
-            "請輸入 API Key：", 
-            type="password", 
-            value=st.session_state['openrouter_key'],
-            help="格式通常為 sk-or-v1-..."
-        )
-        if or_key_input: st.session_state['openrouter_key'] = or_key_input
-
-        st.markdown("---")
-        st.header("📡 第二步：數據來源")
-        source_url = st.text_input("爬取網址：", "https://tw.yahoo.com/")
-        
-        if st.button("🛰️ 執行即時抓取"):
-            with st.spinner("正在爬取最新資訊..."):
-                try:
-                    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-                    res = requests.get(source_url, headers=headers, timeout=15)
-                    res.encoding = 'utf-8'
-                    soup = BeautifulSoup(res.text, 'html.parser')
-                    
-                    found_titles = []
-                    # 抓取常見的新聞標題標籤
-                    for tag in soup.find_all(['h1', 'h2', 'h3', 'a']):
-                        text = tag.get_text().strip()
-                        if 15 < len(text) < 100: # 過濾掉太短或太長的雜訊
-                            found_titles.append(text)
-                    
-                    st.session_state['raw_data'] = list(dict.fromkeys(found_titles))
-                    st.success(f"✅ 成功獲取 {len(st.session_state['raw_data'])} 筆資料！")
-                except Exception as e:
-                    st.error(f"抓取失敗：{e}")
 
     # --- 主畫面：數據處理區 ---
     st.header("🔍 模組二：資訊過濾與精選")
@@ -266,3 +213,56 @@ elif past_mode != "--- 請選擇 ---":
         st.link_button("ChatGPT 登入", "https://chat.openai.com/")
         st.link_button("Microsoft Designer", "https://designer.microsoft.com/")
     # ... 其餘 1~5 內容同你原本的代碼 ...
+# ==========================================
+# ═══ 核心邏輯 D：4月20日 跨模型 AI 數據整合 ═══
+# ==========================================
+elif today_mode == "🎨 AI 指令與圖像核心 (115.04.20)" and past_mode == "--- 請選擇 ---":
+    import requests
+    from bs4 import BeautifulSoup
+
+    # 0. 頁面標題與導引
+    st.title("🤖 跨模型 AI 數據實作 (去 Google 化版本)")
+    st.info("本單元練習：左側側邊欄設定 API -> 執行數據爬取 -> 勾選新聞 -> AI 自動分析報告")
+
+    # 初始化 session_state 防止換頁資料流失
+    if 'raw_data' not in st.session_state: st.session_state['raw_data'] = []
+    if 'openrouter_key' not in st.session_state: st.session_state['openrouter_key'] = ""
+
+    # --- 側邊欄：API 與數據抓取設定 ---
+    with st.sidebar:
+        st.header("🔑 第一步：AI 設定")
+        
+        # 補上連結
+        st.markdown("[👉 點此申請 OpenRouter Key](https://openrouter.ai/keys)")
+        
+        or_key_input = st.text_input(
+            "請輸入 API Key：", 
+            type="password", 
+            value=st.session_state['openrouter_key'],
+            help="格式通常為 sk-or-v1-..."
+        )
+        if or_key_input: st.session_state['openrouter_key'] = or_key_input
+
+        st.markdown("---")
+        st.header("📡 第二步：數據來源")
+        source_url = st.text_input("爬取網址：", "https://tw.yahoo.com/")
+        
+        if st.button("🛰️ 執行即時抓取"):
+            with st.spinner("正在爬取最新資訊..."):
+                try:
+                    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+                    res = requests.get(source_url, headers=headers, timeout=15)
+                    res.encoding = 'utf-8'
+                    soup = BeautifulSoup(res.text, 'html.parser')
+                    
+                    found_titles = []
+                    # 抓取常見的新聞標題標籤
+                    for tag in soup.find_all(['h1', 'h2', 'h3', 'a']):
+                        text = tag.get_text().strip()
+                        if 15 < len(text) < 100: # 過濾掉太短或太長的雜訊
+                            found_titles.append(text)
+                    
+                    st.session_state['raw_data'] = list(dict.fromkeys(found_titles))
+                    st.success(f"✅ 成功獲取 {len(st.session_state['raw_data'])} 筆資料！")
+                except Exception as e:
+                    st.error(f"抓取失敗：{e}")
