@@ -25,7 +25,7 @@ elif lesson_key == "lesson_1":
     run()
 
 elif lesson_key == "lesson_420":
-    from modules.lesson_420 import run
+    from modules.lesson_02 import run
     run()
 
 elif lesson_key == "lesson_427":
