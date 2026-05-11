@@ -60,7 +60,25 @@ st.sidebar.title("🎓 嚴老師教學工作站")
 
 today_mode = st.sidebar.radio(
     "📅 今日課程項目：",
-    ["📊 Pandas 數據分析 (P77-P90)", "🤖 AI 數據整合實作 (115.04.20)"]
+    [
+        "📊 Pandas 數據分析 (P77-P90)",
+        "🤖 AI 數據整合實作 (115.04.20)",
+        "🐍 Google Colab"
+    ]
+)
+
+st.sidebar.divider()
+past_mode = st.sidebar.selectbox(
+    "⏪ 往期課程回顧：",
+    [
+        "--- 請選擇 ---",
+        "0. 帳號註冊",
+        "1. ChatGPT",
+        "3. Luma AI",
+        "4. 2D 轉 3D",
+        "5. 植物地圖專案"
+    ]
+)", "🤖 AI 數據整合實作 (115.04.20)"]
 )
 
 # ==========================================
@@ -184,16 +202,10 @@ elif today_mode == "🤖 AI 數據整合實作 (115.04.20)":
             try:
                 res = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
                 soup = BeautifulSoup(res.text, 'html.parser')
-                titles = [
-                    t.get_text().strip()
-                    for t in soup.find_all(['h2', 'h3', 'a'])
-                    if 15 < len(t.get_text().strip()) < 80
-                ]
-
+                titles = [t.get_text().strip() for t in soup.find_all(['h2', 'h3', 'a']) if 15 < len(t.get_text().strip()) < 80]
                 new_titles = list(dict.fromkeys(titles))[:20]
                 old_titles = st.session_state.get('raw_data', [])
                 st.session_state['raw_data'] = list(dict.fromkeys(old_titles + new_titles))
-
             except Exception as e:
                 st.error(f"抓取失敗: {e}")
 
@@ -204,17 +216,31 @@ elif today_mode == "🤖 AI 數據整合實作 (115.04.20)":
         })
 
         edited = st.data_editor(df_sel, hide_index=True, use_container_width=True)
-
-        st.session_state['selected_data'] = edited[
-            edited["勾選"] == True
-        ]["內容"].tolist()
+        st.session_state['selected_data'] = edited[edited["勾選"] == True]["內容"].tolist()
 
         if st.button("Gemini 分析"):
             try:
                 genai.configure(api_key=st.session_state['google_api_key'])
                 model = genai.GenerativeModel('gemini-2.0-flash')
-                prompt = "請用繁體中文整理並簡短評論：\n" + "\n".join(st.session_state['selected_data'])
+                prompt = "請用繁體中文整理並簡短評論：
+" + "
+".join(st.session_state['selected_data'])
                 response = model.generate_content(prompt)
                 st.markdown(response.text)
             except Exception as e:
                 st.error(f"分析失敗: {e}")
+
+# ==========================================
+# 5. Google Colab / 教學連結
+# ==========================================
+elif today_mode == "🐍 Google Colab" or past_mode != "--- 請選擇 ---":
+    st.title("🔗 教學資源與常用網站")
+
+    st.subheader("常用網站")
+    st.markdown("- Google Colab: https://colab.research.google.com")
+    st.markdown("- Kaggle: https://www.kaggle.com")
+    st.markdown("- GitHub: https://github.com")
+    st.markdown("- Yahoo 新聞: https://tw.news.yahoo.com")
+
+    if past_mode != "--- 請選擇 ---":
+        st.info(f"目前選擇：{past_mode}")
