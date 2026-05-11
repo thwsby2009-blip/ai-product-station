@@ -9,7 +9,32 @@ import google.generativeai as genai
 import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib.gridspec as gs
+import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
+import os
 
+def init_cloud_font():
+    # 1. 嘗試執行 Linux 命令刷新字型快取 (這一步在雲端很有效)
+    os.system("fc-cache -fv")
+    
+    # 2. 強制 Matplotlib 重新掃描系統字型
+    fm._load_fontmanager(try_read_cache=False)
+    
+    # 3. 設定優先順序 (Linux 端的名稱通常包含 'JP' 或 'TC')
+    target_fonts = ['Noto Sans CJK JP', 'Noto Sans CJK TC', 'Noto Sans CJK SC']
+    
+    # 偵測目前系統有的字型
+    available_fonts = [f.name for f in fm.fontManager.ttflist]
+    
+    for f in target_fonts:
+        if f in available_fonts:
+            plt.rcParams['font.sans-serif'] = [f]
+            break
+            
+    plt.rcParams['axes.unicode_minus'] = False
+
+# 執行初始化
+init_cloud_font()
 # ==========================================
 # 0. 全域設定與 Session State
 # ==========================================
