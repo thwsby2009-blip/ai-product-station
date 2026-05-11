@@ -42,7 +42,129 @@ past_mode = st.sidebar.selectbox(
 )
 
 # --- 主頁面邏輯判斷 ---
+# ==========================================
+# ═══ 核心邏輯 D：4月20日 跨模型 AI 數據整合 ═══
+# ==========================================
+elif today_mode == "🎨 AI 指令與圖像核心 (115.04.20)" and past_mode == "--- 請選擇 ---":
+    import requests
+    from bs4 import BeautifulSoup
 
+    # 0. 頁面標題與導引
+    st.title("🤖 跨模型 AI 數據實作 (去 Google 化版本)")
+    st.info("本單元練習：左側側邊欄設定 API -> 執行數據爬取 -> 勾選新聞 -> AI 自動分析報告")
+
+    # 初始化 session_state 防止換頁資料流失
+    if 'raw_data' not in st.session_state: st.session_state['raw_data'] = []
+    if 'openrouter_key' not in st.session_state: st.session_state['openrouter_key'] = ""
+
+    # --- 側邊欄：API 與數據抓取設定 ---
+    with st.sidebar:
+        st.header("🔑 第一步：AI 設定")
+        
+        # 補上連結
+        st.markdown("[👉 點此申請 OpenRouter Key](https://openrouter.ai/keys)")
+        
+        or_key_input = st.text_input(
+            "請輸入 API Key：", 
+            type="password", 
+            value=st.session_state['openrouter_key'],
+            help="格式通常為 sk-or-v1-..."
+        )
+        if or_key_input: st.session_state['openrouter_key'] = or_key_input
+
+        st.markdown("---")
+        st.header("📡 第二步：數據來源")
+        source_url = st.text_input("爬取網址：", "https://tw.yahoo.com/")
+        
+        if st.button("🛰️ 執行即時抓取"):
+            with st.spinner("正在爬取最新資訊..."):
+                try:
+                    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+                    res = requests.get(source_url, headers=headers, timeout=15)
+                    res.encoding = 'utf-8'
+                    soup = BeautifulSoup(res.text, 'html.parser')
+                    
+                    found_titles = []
+                    # 抓取常見的新聞標題標籤
+                    for tag in soup.find_all(['h1', 'h2', 'h3', 'a']):
+                        text = tag.get_text().strip()
+                        if 15 < len(text) < 100: # 過濾掉太短或太長的雜訊
+                            found_titles.append(text)
+                    
+                    st.session_state['raw_data'] = list(dict.fromkeys(found_titles))
+                    st.success(f"✅ 成功獲取 {len(st.session_state['raw_data'])} 筆資料！")
+                except Exception as e:
+                    st.error(f"抓取失敗：{e}")
+
+    # --- 主畫面：數據處理區 ---
+    st.header("🔍 模組二：資訊過濾與精選")
+
+    if st.session_state['raw_data']:
+        search_query = st.text_input("🎯 關鍵字快速過濾：", placeholder="例如：股市、AI...")
+        filtered_list = [t for t in st.session_state['raw_data'] if search_query.lower() in t.lower()]
+        
+        # 建立勾選表格
+        df_to_select = pd.DataFrame({"選擇": [False] * len(filtered_list), "新聞標題內容": filtered_list})
+        edited_df = st.data_editor(
+            df_to_select,
+            hide_index=True,
+            column_config={
+                "選擇": st.column_config.CheckboxColumn(required=False),
+                "新聞標題內容": st.column_config.TextColumn(width="large")
+            },
+            use_container_width=True,
+            key="news_editor"
+        )
+        selected_titles = edited_df[edited_df["選擇"] == True]["新聞標題內容"].tolist()
+        
+        if selected_titles:
+            st.success(f"已選取 {len(selected_titles)} 條新聞")
+
+        # --- 模組三：AI 分析 ---
+        st.divider()
+        st.header("🤖 模組三：多模型調度分析")
+        
+        target_model = st.selectbox(
+            "選擇 AI 模型 (免費模型推薦)：",
+            [
+                "google/gemini-flash-1.5-exp:free",
+                "meta-llama/llama-3.1-8b-instruct:free",
+                "mistralai/mistral-7b-instruct:free",
+                "qwen/qwen-2-7b-instruct:free"
+            ]
+        )
+
+        if st.button("🚀 啟動 AI 進行深度分析", type="primary"):
+            if not st.session_state['openrouter_key']:
+                st.error("❌ 請先在左側輸入 OpenRouter API Key！")
+            elif not selected_titles:
+                st.warning("⚠️ 請勾選新聞。")
+            else:
+                try:
+                    with st.spinner(f"🧠 {target_model} 分析中..."):
+                        context = "\n".join(selected_titles)
+                        prompt = f"請擔任專業評論員，針對以下新聞內容進行繁體中文的趨勢總結與幽默短評，最後給讀者一個建議：\n\n{context}"
+                        
+                        response = requests.post(
+                            url="https://openrouter.ai/api/v1/chat/completions",
+                            headers={
+                                "Authorization": f"Bearer {st.session_state['openrouter_key']}",
+                                "HTTP-Referer": "http://localhost:8501",
+                                "X-Title": "Student Demo",
+                            },
+                            json={
+                                "model": target_model,
+                                "messages": [{"role": "user", "content": prompt}]
+                            },
+                            timeout=60
+                        )
+                        result = response.json()
+                        st.markdown(result['choices'][0]['message']['content'])
+                        st.balloons()
+                except Exception as e:
+                    st.error(f"分析失敗：{e}")
+    else:
+        st.info("👋 請先在左側邊欄點擊「執行即時抓取」來獲取數據來源。")
 # ==========================================
 # ═══ 核心邏輯 A：4月27日 Pandas 課程 ═══
 # ==========================================
