@@ -77,7 +77,8 @@ past_mode = st.sidebar.selectbox(
         "1. ChatGPT",
         "3. Luma AI",
         "4. 2D 轉 3D",
-            ]
+        "5. 植物地圖專案"
+    ]
 )
 
 # ==========================================
@@ -221,16 +222,18 @@ elif today_mode == "🤖 AI 數據整合實作 (115.04.20)":
             try:
                 genai.configure(api_key=st.session_state['google_api_key'])
                 model = genai.GenerativeModel('gemini-2.0-flash')
-                prompt = "請用繁體中文整理並簡短評論：" + " ".join(st.session_state['selected_data'])
+                prompt = "請用繁體中文整理並簡短評論：
+" + "
+".join(st.session_state['selected_data'])
                 response = model.generate_content(prompt)
                 st.markdown(response.text)
             except Exception as e:
                 st.error(f"分析失敗: {e}")
 
 # ==========================================
-# 5. Google Colab / 教學連結
+# 5. Google Colab / 教學連結（修正版）
 # ==========================================
-elif today_mode == "🐍 Google Colab" or past_mode != "--- 請選擇 ---":
+elif today_mode == "🐍 Google Colab":
     st.title("🔗 教學資源與常用網站")
 
     st.subheader("常用網站")
@@ -240,4 +243,17 @@ elif today_mode == "🐍 Google Colab" or past_mode != "--- 請選擇 ---":
     st.markdown("- Yahoo 新聞: https://tw.news.yahoo.com")
 
     if past_mode != "--- 請選擇 ---":
+        st.subheader("⏪ 往期課程內容")
         st.info(f"目前選擇：{past_mode}")
+
+        if past_mode == "1. ChatGPT":
+            st.write("ChatGPT 教學內容區（可再擴充）")
+        elif past_mode == "3. Luma AI":
+            st.write("Luma AI 教學內容區（可再擴充）")
+        elif past_mode == "4. 2D 轉 3D":
+            st.write("2D轉3D教學內容區（可再擴充）")
+        elif past_mode == "5. 植物地圖專案":
+            st.write("植物地圖專案教學內容區（可再擴充）")
+
+else:
+    st.info("請從左側選單選擇課程")
