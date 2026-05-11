@@ -127,7 +127,7 @@ elif today_mode == "🤖 AI 數據整合實作 (115.04.20)":
                     with st.spinner("Gemini 正在分析大數據中..."):
                         # 配置 Google Gemini
                         genai.configure(api_key=st.session_state['google_api_key'])
-                        model = genai.GenerativeModel('gemini-2.0-flash')
+                        model = genai.GenerativeModel('gemini-2.5-flash')
                         
                         prompt = f"""
                         你是一位專業的新聞分析師。以下是從網路抓取的最新資訊：
