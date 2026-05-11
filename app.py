@@ -43,43 +43,56 @@ past_mode = st.sidebar.selectbox(
 
 # --- 主頁面邏輯判斷 ---
 
-# 優先處理：4/27 Pandas 數據分析
+# ==========================================
+# ═══ 核心邏輯 A：4月27日 Pandas 課程 ═══
+# ==========================================
 if today_mode == "📊 Pandas 數據分析 (P77-P90)" and past_mode == "--- 請選擇 ---":
-    st.header("📊 P77-P90：Pandas 數據分析全流程")
-    
-    # 檢查資料夾是否存在
-    if not os.path.exists("data"):
-        st.warning("⚠️ 找不到 data 資料夾，正在建立範例數據...")
-        os.makedirs("data", exist_ok=True)
-        # 這裡可以寫入一段 code 產生練習用的 CSV，防止 GitHub 上沒抓到檔案時噴錯
+    st.title("🎓 Pandas 全流程實作 (P77-P90)")
 
+    # --- 自動檢查並生成數據檔案 (防止 Errno 2) ---
+    if not os.path.exists("data"):
+        os.makedirs("data")
+    
+    file_inc = "data/practice_income.csv"
+    file_exp = "data/practice_expense.csv"
+
+    if not os.path.exists(file_inc) or not os.path.exists(file_exp):
+        st.warning("⚠️ 找不到練習檔案，系統正在自動生成範例數據...")
+        
+        # 生成收入範例檔
+        df_inc_sample = pd.DataFrame({
+            "姓名": ["張三", "李四", "王五", "趙六", "孫七"],
+            "年齡組": ["20-30", "30-40", "20-30", "40-50", "30-40"],
+            "月薪": [35000, 48000, 38000, 55000, 42000],
+            "獎金": [5000, 8000, 4000, 12000, 7000]
+        })
+        # 生成支出範例檔
+        df_exp_sample = pd.DataFrame({
+            "年齡組": ["20-30", "30-40", "40-50"],
+            "食衣住行支出": [15000, 20000, 25000],
+            "娛樂教育支出": [5000, 8000, 10000]
+        })
+        df_inc_sample.to_csv(file_inc, index=False, encoding="utf-8-sig")
+        df_exp_sample.to_csv(file_exp, index=False, encoding="utf-8-sig")
+        st.success("✅ 範例數據已補齊！")
+
+    # --- 進入正式分析邏輯 ---
     try:
-        # --- 以下放入你之前寫的 P77-P90 核心邏輯 ---
-        # 範例：數據讀取與計算
-        df_inc = pd.read_csv("data/practice_income.csv")
-        df_exp = pd.read_csv("data/practice_expense.csv")
+        df_inc = pd.read_csv(file_inc)
+        df_exp = pd.read_csv(file_exp)
         
-        # (中間計算過程略過，請貼入你之前的 df_final 計算邏輯)
+        # P78-P79：計算過程
+        df_inc_avg = df_inc.groupby("年齡組")[["月薪", "獎金"]].mean().reset_index()
+        df_final = pd.merge(df_inc_avg, df_exp, on="年齡組", how="inner")
+        df_final["總收入"] = df_final["月薪"] + df_final["獎金"]
+        df_final["總支出"] = df_final["食衣住行支出"] + df_final["娛樂教育支出"]
+        df_final["儲蓄額"] = df_final["總收入"] - df_final["總支出"]
+
+        # 展示：P80 樞紐分析
+        st.header("🎛️ 樞紐分析預覽 (P80)")
+        st.dataframe(df_final.style.background_gradient(cmap="YlGn"))
         
-        # 展示成果：P80 樞紐分析
-        st.subheader("🎛️ 樞紐分析 (P80)")
-        # 注意：這裡就是會用到 matplotlib 的地方
-        # st.dataframe(df_final.style.background_gradient(cmap="YlGn"))
-        
-        # 展示成果：P90 儀表板
-        st.subheader("📈 綜合銷售儀表板 (P90)")
-        # [貼入你的 plt.figure 與 st.pyplot 代碼]
+        # ... 後續繪圖代碼 (P81-P90) ...
         
     except Exception as e:
-        st.error(f"分析模組載入錯誤: {e}")
-        st.info("請確認 GitHub 倉庫中包含 data/practice_income.csv 等檔案。")
-
-# 處理：Google Colab
-elif today_mode == "🐍 Google Colab 雲端開發實作" and past_mode == "--- 請選擇 ---":
-    st.header("🐍 今日重點：Google Colab 雲端程式開發")
-    st.link_button("🔥 立即開啟 Google Colab 工作站", "https://colab.research.google.com/")
-
-# 處理：舊有課程
-elif past_mode != "--- 請選擇 ---":
-    st.header(f"⏪ 課程回顧：{past_mode}")
-    # 根據選單顯示對應按鈕...
+        st.error(f"❌ 讀取資料失敗：{e}")
