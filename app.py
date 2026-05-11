@@ -24,7 +24,7 @@ elif lesson_key == "lesson_1":
     from modules.lesson_1 import run
     run()
 
-elif lesson_key == "lesson_420":
+elif lesson_key == "lesson_02":
     from modules.lesson_02 import run
     run()
 
