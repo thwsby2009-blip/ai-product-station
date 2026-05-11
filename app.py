@@ -79,16 +79,16 @@ past_mode = st.sidebar.selectbox(
         "2. DALL-E 圖像生成 (Gemini 指令補強)",
         "3. Luma AI 影片生成 (生長演練)",
         "4. 2D 轉 3D 終極實作",
-        "5. 專屬作業：Gemini 3D 公仔生成"
-    ]
-    [
-    "🤖 AI 數據整合實作 (115.04.20)",
-    "🐍 Google Colab"
-]
+        "5. 專屬作業：Gemini 3D 公仔生成",
+        "🤖 AI 數據整合實作 (115.04.20)",  # 這裡合併進來了
+        "🐍 Google Colab"
+    ] # 這裡原本少了一個括號，且下方清單沒連起來
 )
+
 st.sidebar.divider()
 
-past_mode = st.sidebar.selectbox(
+# 下方這塊如果你重複定義了，可以考慮移除，或是改成不同變數名稱
+past_mode_secondary = st.sidebar.selectbox(
     "⏪ 往期課程回顧：",
     [
         "--- 請選擇 ---",
@@ -99,7 +99,6 @@ past_mode = st.sidebar.selectbox(
         "5. 植物地圖專案"
     ]
 )
-
 # ==========================================
 # 3. Pandas 主課程
 # ==========================================
