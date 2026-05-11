@@ -68,6 +68,7 @@ today_mode = st.sidebar.radio(
 )
 
 st.sidebar.divider()
+
 past_mode = st.sidebar.selectbox(
     "⏪ 往期課程回顧：",
     [
@@ -78,7 +79,6 @@ past_mode = st.sidebar.selectbox(
         "4. 2D 轉 3D",
         "5. 植物地圖專案"
     ]
-)", "🤖 AI 數據整合實作 (115.04.20)"]
 )
 
 # ==========================================
