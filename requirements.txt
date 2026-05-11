@@ -9,4 +9,3 @@ requests
 openai
 python-dotenv
 google-generativeai
-fonts-noto-cjk
