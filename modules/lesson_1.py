@@ -1,118 +1,144 @@
-
 import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
+import google.generativeai as genai
 
 def run():
 
-    # ❗不能再 set_page_config（這是關鍵修正）
-
+    # ==========================================
     # 初始化 session_state
+    # ==========================================
     if 'raw_data' not in st.session_state:
         st.session_state['raw_data'] = []
 
-    if 'openrouter_key' not in st.session_state:
-        st.session_state['openrouter_key'] = ""
+    if 'google_api_key' not in st.session_state:
+        st.session_state['google_api_key'] = ""
 
-    # =========================
-    # sidebar
-    # =========================
+    # ==========================================
+    # Sidebar
+    # ==========================================
     with st.sidebar:
-        st.header("🔑 AI 設定")
+        st.header("🔑 AI 設定 (Google Gemini)")
 
-        st.session_state['openrouter_key'] = st.text_input(
-            "OpenRouter API Key",
+        st.session_state['google_api_key'] = st.text_input(
+            "Google API Key",
             type="password",
-            value=st.session_state['openrouter_key']
+            value=st.session_state['google_api_key']
         )
 
+        st.markdown("---")
         st.header("📡 數據來源")
 
-        url = st.text_input("網址", "https://tw.yahoo.com/")
+        source_url = st.text_input(
+            "數據來源網址：",
+            "https://tw.yahoo.com/"
+        )
 
-        if st.button("抓取資料"):
+        if st.button("🛰️ 抓取資料"):
             try:
-                res = requests.get(url, timeout=10)
+                headers = {
+                    'User-Agent': 'Mozilla/5.0'
+                }
+                res = requests.get(source_url, headers=headers, timeout=15)
                 soup = BeautifulSoup(res.text, "html.parser")
 
-                data = []
-                for t in soup.find_all(["h1", "h2", "h3", "a", "p"]):
-                    text = t.get_text().strip()
+                found = []
+                for tag in soup.find_all(['h1', 'h2', 'h3', 'a', 'p']):
+                    text = tag.get_text().strip()
                     if 15 < len(text) < 200:
-                        data.append(text)
+                        found.append(text)
 
-                st.session_state['raw_data'] = list(dict.fromkeys(data))
-                st.success(f"抓到 {len(data)} 筆")
+                st.session_state['raw_data'] = list(dict.fromkeys(found))
+                st.success(f"成功抓取 {len(found)} 筆資料")
 
             except Exception as e:
-                st.error(e)
+                st.error(f"抓取失敗：{e}")
 
-    # =========================
-    # main UI
-    # =========================
-    st.title("📊 Lesson 1：AI 數據分析")
+    # ==========================================
+    # 主畫面
+    # ==========================================
+    st.title("📊 Lesson 1：AI 數據分析（Google Gemini版）")
 
     if not st.session_state['raw_data']:
-        st.info("請先抓資料")
+        st.info("請先在左側抓取資料")
         return
 
-    keyword = st.text_input("關鍵字")
+    keyword = st.text_input("🔍 關鍵字過濾")
 
     filtered = [
         x for x in st.session_state['raw_data']
         if keyword.lower() in x.lower()
     ]
 
+    st.subheader(f"資料數量：{len(filtered)}")
+
     df = pd.DataFrame({
         "選擇": [False] * len(filtered),
         "內容": filtered
     })
 
-    edited = st.data_editor(df, use_container_width=True)
+    edited_df = st.data_editor(
+        df,
+        use_container_width=True,
+        key="lesson1_table"
+    )
 
-    selected = edited[edited["選擇"] == True]["內容"].tolist()
+    selected = edited_df[
+        edited_df["選擇"] == True
+    ]["內容"].tolist()
 
     if selected:
-        st.success(f"已選 {len(selected)} 筆")
+        st.success(f"已選擇 {len(selected)} 筆資料")
 
+    # ==========================================
+    # AI 分析區（Google Gemini）
+    # ==========================================
     st.markdown("---")
+    st.header("🤖 AI 分析（Google Gemini）")
 
-    st.header("🤖 AI 分析")
+    model_name = st.selectbox(
+        "選擇模型",
+        [
+            "gemini-1.5-flash",
+            "gemini-1.5-pro"
+        ]
+    )
 
-    model = st.selectbox("模型", [
-        "meta-llama/llama-3.1-8b-instruct:free",
-        "google/gemini-flash-1.5-exp:free"
-    ])
+    if st.button("🚀 開始分析"):
 
-    if st.button("分析"):
-
-        if not st.session_state['openrouter_key']:
-            st.error("沒 key")
+        if not st.session_state['google_api_key']:
+            st.error("請輸入 Google API Key")
             return
 
         if not selected:
-            st.warning("沒選資料")
+            st.warning("請至少選擇一筆資料")
             return
 
-        prompt = "\n".join(selected)
-
-        res = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {st.session_state['openrouter_key']}",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": model,
-                "messages": [
-                    {"role": "user", "content": prompt}
-                ]
-            }
-        )
-
         try:
-            result = res.json()["choices"][0]["message"]["content"]
-            st.markdown(result)
-        except:
-            st.error("API error")
+            genai.configure(api_key=st.session_state['google_api_key'])
+
+            model = genai.GenerativeModel(model_name)
+
+            prompt = f"""
+你是一位專業新聞分析師，請分析以下內容：
+
+{chr(10).join(selected)}
+
+請提供：
+1. 重點整理
+2. 趨勢分析
+3. 一句幽默評論
+"""
+
+            response = model.generate_content(prompt)
+
+            st.subheader("📌 AI 分析結果")
+            st.markdown(response.text)
+
+            st.balloons()
+
+        except Exception as e:
+            st.error(f"AI 分析失敗：{e}")
+
+    st.caption("Lesson 1 - Google Gemini 整合版")
