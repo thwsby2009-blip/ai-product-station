@@ -24,11 +24,14 @@ def run():
         return
 
     # ═══ 2. 統一抓取工具 ═══
+    import ssl
+    _ssl_ctx = ssl._create_unverified_context()
+    
     def safe_fetch(api_id, api_key):
         fixed_id = api_id.replace('0-', 'O-')
         url = f"https://opendata.cwa.gov.tw/api/v1/rest/datastore/{fixed_id}"
         try:
-            r = requests.get(url, params={"Authorization": api_key}, timeout=10)
+            r = requests.get(url, params={"Authorization": api_key}, timeout=10, verify=False)
             return r.json() if r.status_code == 200 else None
         except:
             return None
