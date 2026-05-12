@@ -95,12 +95,13 @@ def run():
     # --- 模式：郵遞查詢 (讀取外部 XML 檔案) ---
     elif mode == "📮 郵遞查詢":
         st.title("📮 全台郵遞區號查詢系統")
-        base_path = os.path.dirname(__file__)
-        xml_file = os.path.join(base_path, "data", "County_h_10906.xml")
-        
-        if os.path.exists(xml_file):
-            try:
-                tree = ET.parse(xml_file)
+     import os
+
+xml_file = os.path.join(
+    os.getcwd(),
+    "data",
+    "County_h_10906.xml"
+)
         
                 # 動態解析 XML
                 tree = ET.parse(xml_file)
