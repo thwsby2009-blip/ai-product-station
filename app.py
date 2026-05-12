@@ -1,37 +1,40 @@
 import streamlit as st
+import sys
+import os
+import importlib
 
-st.set_page_config(page_title="AI 課程")
+# --- 核心修正：強制讓 Python 看到 modules 資料夾 ---
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
 
-# 1️⃣ options 一定要先
+st.set_page_config(page_title="AI 課程", layout="wide")
+
+# 1️⃣ 選項對照表
 options = {
-    "1. AI 產品設計全流程工作站": "lesson_0",
-    "2. AI 數據分析": "lesson_1",
-    "3. 金流數據分析": "lesson_02",
-    "4.4/27 AI整合": "lesson_427",
-    "5.Google Colab 雲端程式開發": "colab"
+    "1. AI 產品設計全流程工作站": "modules.lesson_0",
+    "2. AI 數據分析": "modules.lesson_1",
+    "3. 金流數據分析": "modules.lesson_02",
+    "4. 4/27 AI整合": "modules.lesson_427",
+    "5. Google Colab 雲端程式開發": "modules.colab"
 }
 
-# 2️⃣ UI
-lesson_ui = st.selectbox("課程選擇", list(options.keys()))
-lesson_key = options[lesson_ui]
+# 2️⃣ UI 介面
+lesson_ui = st.selectbox("📖 課程選擇", list(options.keys()))
+module_path = options[lesson_ui]
 
-st.write("你選的是：", lesson_key)
-if lesson_key == "lesson_0":
-    from modules.lesson_0 import run
-    run()
+st.divider()
 
-elif lesson_key == "lesson_1":
-    from modules.lesson_1 import run
-    run()
-
-elif lesson_key == "lesson_02":
-    from modules.lesson_02 import run
-    run()
-
-elif lesson_key == "lesson_427":
-    from modules.lesson_427 import run
-    run()
-
-elif lesson_key == "colab":
-    from modules.colab import run
-    run()
+# 3️⃣ 動態執行
+try:
+    # 根據選擇動態載入模組
+    target_module = importlib.import_module(module_path)
+    if hasattr(target_module, 'run'):
+        target_module.run()
+    else:
+        st.error(f"錯誤：{module_path} 檔案中找不到 run() 函式")
+except ImportError as e:
+    st.error(f"無法載入課程模組：{e}")
+    st.info("💡 解決辦法：請檢查 GitHub 中是否存在 'modules' 資料夾，且裡面必須有一個空的 '__init__.py' 檔案。")
+except Exception as e:
+    st.error(f"發生意外錯誤：{e}")
