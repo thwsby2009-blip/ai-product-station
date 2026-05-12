@@ -2,7 +2,6 @@ import streamlit as st
 import sys
 import os
 import importlib
-def run():
 # --- 核心修正：強制讓 Python 看到 modules 資料夾 ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
