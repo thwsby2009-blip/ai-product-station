@@ -97,6 +97,7 @@ def run():
 
         # ================= 路徑（雲端穩定版） =================
         base_dir = os.path.dirname(os.path.abspath(__file__))
+        st.write(f"🔍 base_dir = {base_dir}")
         xml_file = os.path.join(
             base_dir,
             "..",
@@ -104,6 +105,7 @@ def run():
             "County_h_10906.xml"
         )
         xml_file = os.path.normpath(xml_file)
+        st.write(f"🔍 xml_file = {xml_file}")
 
         # ================= 檔案存在檢查 =================
         if not os.path.exists(xml_file):
