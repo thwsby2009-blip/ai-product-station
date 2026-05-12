@@ -93,57 +93,70 @@ def run():
     # ═════════════════════════════
     elif mode == "📮 郵遞查詢":
 
-        st.title("📮 全台郵遞區號查詢系統")
+    st.title("📮 全台郵遞區號查詢系統")
 
-        xml_file = os.path.join(
-            os.getcwd(),
-            "data",
-            "County_h_10906.xml"
-        )
+    import os
+    import xml.etree.ElementTree as ET
 
-        if os.path.exists(xml_file):
+    # ================= 路徑（雲端穩定版） =================
+    xml_file = os.path.join(
+        os.getcwd(),
+        "data",
+        "County_h_10906.xml"
+    )
 
-            try:
+    # ================= 檔案存在檢查 =================
+    if not os.path.exists(xml_file):
+        st.error(f"❌ 找不到檔案：{xml_file}")
+        st.stop()
 
-                tree = ET.parse(xml_file)
-                root = tree.getroot()
+    # ================= XML 解析 =================
+    try:
+        tree = ET.parse(xml_file)
+        root = tree.getroot()
 
-                data = []
+        data = []
 
-                for item in root.findall('.//County_h_10906'):
-                    data.append({
-                        "郵遞區號": item.findtext('欄位1'),
-                        "行政區": item.findtext('欄位2'),
-                        "英文名稱": item.findtext('欄位3')
-                    })
+        # 你的 XML 結構：直接 children 就是 County_h_10906
+        for item in root.findall("./County_h_10906"):
 
-                df = pd.DataFrame(data)
+            data.append({
+                "郵遞區號": item.findtext("欄位1"),
+                "行政區": item.findtext("欄位2"),
+                "英文名稱": item.findtext("欄位3")
+            })
 
-                st.success(f"資料筆數：{len(df)}")
+        df = pd.DataFrame(data)
 
-                # 🔍 搜尋
-                keyword = st.text_input("🔍 輸入區名或郵遞區號")
+    except Exception as e:
+        st.error(f"❌ XML 解析失敗：{e}")
+        st.stop()
 
-                if keyword:
+    # ================= 資料顯示 =================
+    st.success(f"✅ 載入成功：{len(df)} 筆資料")
+    st.dataframe(df, use_container_width=True)
 
-                    filtered_df = df[
-                        df.apply(
-                            lambda r: r.astype(str).str.contains(keyword).any(),
-                            axis=1
-                        )
-                    ]
+    # ================= 搜尋功能 =================
+    st.divider()
+    st.subheader("🔍 搜尋郵遞區號 / 行政區")
 
-                    st.dataframe(filtered_df, use_container_width=True)
+    keyword = st.text_input("請輸入關鍵字（例如：100 / 中正區 / Taipei）")
 
-                else:
+    if keyword:
 
-                    st.dataframe(df, use_container_width=True)
+        filtered_df = df[
+            df.astype(str).apply(
+                lambda row: row.str.contains(keyword, case=False).any(),
+                axis=1
+            )
+        ]
 
-            except Exception as e:
-                st.error(f"XML解析錯誤：{e}")
+        st.info(f"🔎 找到 {len(filtered_df)} 筆結果")
+        st.dataframe(filtered_df, use_container_width=True)
 
-        else:
-            st.error(f"找不到檔案：{xml_file}")
+    else:
+
+        st.caption("輸入關鍵字開始搜尋")
 
     # ═════════════════════════════
     # 💹 匯率
