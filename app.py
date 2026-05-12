@@ -14,7 +14,7 @@ options = {
     "1. AI 產品設計全流程工作站": "modules.lesson_0",
     "2. AI 分析數據": "modules.lesson_1",
     "3. AI 金流數據分析": "modules.lesson_02",
-    "4. AI 數據分析": "modules.lesson_427",
+    "4. AI 數據分析": "modules.lesson_03",
     "5. Google Colab 雲端程式開發": "modules.colab"
 }
 
