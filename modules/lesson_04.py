@@ -1,16 +1,14 @@
 import streamlit as st
 import os
 import pandas as pd
-import re
 import requests
 import datetime
+import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup
 import google.generativeai as genai
-import platform
 
 def run():
     # ═══ 1. API Key 與環境設定 ═══
-    # 建立一個與 Lesson 03 同名的 Session State 鍵值，達到 Key 共用效果
     if "google_api_key" not in st.session_state:
         st.session_state["google_api_key"] = ""
 
@@ -22,7 +20,6 @@ def run():
         help="此 Key 將用於對話與占卜功能"
     )
 
-    # 只要有 Key 就進行配置
     if st.session_state["google_api_key"]:
         genai.configure(api_key=st.session_state["google_api_key"])
 
@@ -34,7 +31,7 @@ def run():
     if "news_list" not in st.session_state:
         st.session_state.news_list = []
 
-    # ═══ 3. 側邊欄：小龍蝦功能選單 ═══
+    # ═══ 3. 側邊欄：功能選單 ═══
     st.sidebar.divider()
     st.sidebar.subheader("🦞 系統模式")
     mode = st.sidebar.radio(
@@ -44,11 +41,10 @@ def run():
 
     # ═══ 4. 各功能畫面實作 ═══
 
-    # --- 模式：智能對話 (使用 Google Gemini) ---
+    # --- 模式：智能對話 ---
     if mode == "💬 智能對話":
         st.title("💬 小龍蝦 AI 智慧對話")
-        st.caption("基於 Gemini-2.5-flash 模型")
-
+        st.caption("基於 Gemini 模型")
         for msg in st.session_state.messages:
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
@@ -60,24 +56,22 @@ def run():
             
             with st.chat_message("assistant"):
                 if not st.session_state["google_api_key"]:
-                    st.warning("⚠️ 請先在左側欄位輸入 Google API Key")
+                    st.warning("⚠️ 請先在左側輸入 Google API Key")
                 else:
                     try:
-                        model = genai.GenerativeModel("gemini-2.5-flash")
-                        # 轉換歷史紀錄格式以符合 Gemini SDK 要求
+                        model = genai.GenerativeModel("gemini-1.5-flash")
                         history = [
                             {"role": "user" if m["role"] == "user" else "model", "parts": [m["content"]]} 
                             for m in st.session_state.messages[:-1]
                         ]
                         chat = model.start_chat(history=history)
                         response = chat.send_message(prompt)
-                        
                         st.markdown(response.text)
                         st.session_state.messages.append({"role": "assistant", "content": response.text})
                     except Exception as e:
                         st.error(f"AI 回應失敗: {e}")
 
-    # --- 模式：今日新聞 (RSS 爬蟲) ---
+    # --- 模式：今日新聞 (你的爬蟲邏輯在這裡) ---
     elif mode == "📰 今日新聞":
         st.title("📰 全球新聞即時觀測站")
         col_l, col_r = st.columns([1, 1.2])
@@ -131,35 +125,34 @@ def run():
             else:
                 st.info("👈 請點擊獲取情報並選擇新聞")
 
-    # --- 模式：郵遞查詢 ---
-import xml.etree.ElementTree as ET
+    # --- 模式：郵遞查詢 (修正後的 XML 邏輯) ---
+    elif mode == "📮 郵遞查詢":
+        st.title("📮 全台郵遞區號查詢")
+        # 請在此處放入你完整的 XML 字串內容
+        xml_data = """<dataroot>
+            <County_h_10906><欄位1>100</欄位1><欄位2>臺北市中正區</欄位2><欄位3>Zhongzheng Dist.</欄位3></County_h_10906>
+            <County_h_10906><欄位1>103</欄位1><欄位2>臺北市大同區</欄位2><欄位3>Datong Dist.</欄位3></County_h_10906>
+        </dataroot>""" 
+        
+        try:
+            root = ET.fromstring(xml_data)
+            districts = []
+            for item in root.findall('County_h_10906'):
+                districts.append({
+                    "郵遞區號": item.findtext('欄位1') or "",
+                    "行政區": item.findtext('欄位2') or "",
+                    "英文名稱": item.findtext('欄位3') or ""
+                })
+            df = pd.DataFrame(districts)
+            st.dataframe(df, use_container_width=True)
+            
+            # 測試輸出到後台（如有需要）
+            for d in districts[:3]:
+                print(f"郵遞區號: {d['郵遞區號']} | 行政區: {d['行政區']}")
+        except Exception as e:
+            st.error(f"XML 解析錯誤: {e}")
 
-xml_data = """你的 XML 內容..."""
-
-# 解析 XML
-root = ET.fromstring(xml_data)
-
-# 建立一個清單來儲存結果
-districts = []
-
-# 修正：迭代節點名稱必須為 'County_h_10906'
-for item in root.findall('County_h_10906'):
-    # 修正：欄位名稱必須對應 XML 內的 <欄位1>, <欄位2>, <欄位3>
-    zip_code = item.find('欄位1').text if item.find('欄位1') is not None else ""
-    name_tw  = item.find('欄位2').text if item.find('欄位2') is not None else ""
-    name_en  = item.find('欄位3').text if item.find('欄位3') is not None else ""
-    
-    districts.append({
-        "zip": zip_code,
-        "name": name_tw,
-        "english": name_en
-    })
-
-# 測試輸出前幾筆
-for d in districts[:5]:
-    print(f"郵遞區號: {d['zip']} | 行政區: {d['name']}")
-
-   # --- 模式：今日匯率 ---
+    # --- 模式：今日匯率 ---
     elif mode == "💹 今日匯率":
         st.title("💹 即時外幣匯率 (TWD)")
         try:
@@ -174,7 +167,7 @@ for d in districts[:5]:
             cols = st.columns(4)
             for i, (k, v) in enumerate(rates.items()):
                 cols[i].metric(k, v)
-            st.caption(f"數據最後更新時間: {res['time_last_update_utc'][:16]}")
+            st.caption(f"數據更新時間: {res['time_last_update_utc'][:16]}")
         except:
             st.error("無法取得即時匯率數據")
 
@@ -191,9 +184,10 @@ for d in districts[:5]:
         uname = c2.text_input("暱稱", value="小龍蝦", key="wb_name")
         m_in = c1.text_input("輸入訊息...", key="wb_msg")
         if st.button("發送訊息", use_container_width=True):
-            t = datetime.datetime.now().strftime("%H:%M")
-            st.session_state.shared_board.append(f"[{t}] {uname}: {m_in}")
-            st.rerun()
+            if m_in:
+                t = datetime.datetime.now().strftime("%H:%M")
+                st.session_state.shared_board.append(f"[{t}] {uname}: {m_in}")
+                st.rerun()
 
     # --- 模式：星座運勢 ---
     elif mode == "🌟 星座運勢":
@@ -205,16 +199,17 @@ for d in districts[:5]:
             else:
                 with st.spinner("正在觀測星象中..."):
                     try:
-                        model = genai.GenerativeModel("gemini-2.5-flash")
-                        prompt = f"請以專業占星師的口吻，為{z}寫一段今日運勢，包含整體指數、工作、財運、感情，建議用繁體中文，約 200 字。"
+                        model = genai.GenerativeModel("gemini-1.5-flash")
+                        prompt = f"請以占星師口吻為{z}寫一段今日運勢，含指數與建議，繁體中文。"
                         response = model.generate_content(prompt)
                         st.success(response.text)
-                        st.balloons()
                     except Exception as e:
                         st.error(f"占卜失敗: {e}")
 
     # --- 模式：畫圖展示 ---
     elif mode == "🎨 畫圖展示":
         st.title("🎨 AI 畫廊展示")
-        st.write("這是一個模擬生成畫面的區塊，展示如何結合圖片顯示。")
         st.image("https://images.unsplash.com/photo-1551244072-5d12893278ab?w=1000", caption="AI 生成藝術模擬")
+
+if __name__ == "__main__":
+    run()
