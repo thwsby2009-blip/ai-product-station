@@ -137,27 +137,66 @@ def run():
             st.error(f"❌ XML 解析失敗：{e}")
             st.stop()
 
-        # ================= 資料顯示 =================
-        st.success(f"✅ 載入成功：{len(df)} 筆資料")
-        st.dataframe(df, use_container_width=True)
-
-        # ================= 搜尋功能 =================
-        st.divider()
-        st.subheader("🔍 搜尋郵遞區號 / 行政區")
-
-        keyword = st.text_input("請輸入關鍵字（例如：100 / 中正區 / Taipei）")
-
-        if keyword:
-            filtered_df = df[
-                df.astype(str).apply(
-                    lambda row: row.str.contains(keyword, case=False).any(),
-                    axis=1
+        # ================= 資料載入（只載一次，存進 session_state） =================
+        if "zip_df" not in st.session_state:
+            try:
+                with open(xml_file, "r", encoding="utf-8") as f:
+                    lines = f.readlines()
+                xml_content = "".join(
+                    line for line in lines if not line.startswith("This XML file")
                 )
-            ]
-            st.info(f"🔎 找到 {len(filtered_df)} 筆結果")
-            st.dataframe(filtered_df, use_container_width=True)
-        else:
-            st.caption("輸入關鍵字開始搜尋")
+                root = ET.fromstring(xml_content)
+
+                data = []
+                for item in root.findall("County_h_10906"):
+                    data.append({
+                        "郵遞區號": item.findtext("欄位1"),
+                        "行政區": item.findtext("欄位2"),
+                        "英文名稱": item.findtext("欄位3")
+                    })
+                st.session_state.zip_df = pd.DataFrame(data)
+                st.success(f"✅ 載入成功：{len(st.session_state.zip_df)} 筆資料")
+            except Exception as e:
+                st.error(f"❌ 資料載入失敗：{e}")
+                st.stop()
+
+        df = st.session_state.zip_df
+
+        # ================= 三層連動選單 =================
+        st.markdown("### 🏙️ 三步驟查詢：縣市 → 區域 → 郵遞區號")
+
+        # 第一步：選縣市
+        df["縣市"] = df["行政區"].str.extract(r"^(.+?[縣市])")
+        cities = sorted(df["縣市"].dropna().unique())
+        selected_city = st.selectbox("1️⃣ 選擇縣市", [""] + cities)
+
+        # 第二步：選區域
+        selected_district = ""
+        selected_zip = ""
+        if selected_city:
+            districts = sorted(df[df["縣市"] == selected_city]["行政區"].tolist())
+            selected_district = st.selectbox("2️⃣ 選擇行政區", [""] + districts)
+
+        # 第三步：顯示結果
+        if selected_district:
+            result = df[df["行政區"] == selected_district]
+            if not result.empty:
+                selected_zip = result.iloc[0]["郵遞區號"]
+                st.success(f"✅ **郵遞區號：{selected_zip}**")
+                st.info(f"📍 {selected_district}（{result.iloc[0]['英文名稱']}）")
+
+        # ================= 快速搜尋（輔助） =================
+        with st.expander("🔍 也可以直接用關鍵字搜尋"):
+            keyword = st.text_input("輸入郵遞區號或行政區名稱")
+            if keyword:
+                filtered = df[
+                    df.astype(str).apply(
+                        lambda row: row.str.contains(keyword, case=False).any(),
+                        axis=1
+                    )
+                ]
+                st.info(f"🔎 找到 {len(filtered)} 筆結果")
+                st.dataframe(filtered, use_container_width=True)
 
     # ═════════════════════════════
     # 💹 匯率
