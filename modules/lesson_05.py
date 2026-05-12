@@ -43,25 +43,31 @@ def run():
         weather_data = safe_fetch("O-A0003-001", cwa_key)
 
     # ═══ 4. 解析邏輯 ═══
-    def get_locations(raw_data, root_key):
+    def get_tide_locations(raw_data):
+        """專門解析潮汐資料：回傳 Location dict 的 list"""
         if not raw_data:
             return []
         records = raw_data.get("records", {})
-        if isinstance(records, list):
-            for item in records:
-                if isinstance(item, dict) and (root_key in item or "Location" in item):
-                    inner = item.get(root_key, {})
-                    if isinstance(inner, list):
-                        return inner
-                    return inner.get("Location", [])
-            return records
-        target = records.get(root_key, {})
-        if isinstance(target, list):
-            return target
-        return target.get("Location", []) or records.get("Location", [])
+        forecasts = records.get("TideForecasts", [])
+        if not isinstance(forecasts, list):
+            return []
+        result = []
+        for item in forecasts:
+            loc = item.get("Location")
+            if isinstance(loc, dict) and loc.get("LocationName"):
+                result.append(loc)
+        return result
 
-    tide_locs = get_locations(tide_data, "TideForecasts")
-    weather_stats = get_locations(weather_data, "Station")
+    def get_weather_stations(raw_data):
+        """專門解析氣象站資料"""
+        if not raw_data:
+            return []
+        records = raw_data.get("records", {})
+        stations = records.get("Station", [])
+        return stations if isinstance(stations, list) else []
+
+    tide_locs = get_tide_locations(tide_data)
+    weather_stats = get_weather_stations(weather_data)
 
     # ═══ 5. 畫面佈局 ═══
     st.title("🌊 台灣海象即時儀表板")
