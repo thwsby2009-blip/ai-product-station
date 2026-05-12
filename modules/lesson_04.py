@@ -59,7 +59,7 @@ def run():
                     st.warning("⚠️ 請先在左側輸入 Google API Key")
                 else:
                     try:
-                        model = genai.GenerativeModel("gemini-1.5-flash")
+                        model = genai.GenerativeModel("gemini-2.5-flash")
                         history = [
                             {"role": "user" if m["role"] == "user" else "model", "parts": [m["content"]]} 
                             for m in st.session_state.messages[:-1]
@@ -199,7 +199,7 @@ def run():
             else:
                 with st.spinner("正在觀測星象中..."):
                     try:
-                        model = genai.GenerativeModel("gemini-1.5-flash")
+                        model = genai.GenerativeModel("gemini-2.5-flash")
                         prompt = f"請以占星師口吻為{z}寫一段今日運勢，含指數與建議，繁體中文。"
                         response = model.generate_content(prompt)
                         st.success(response.text)
