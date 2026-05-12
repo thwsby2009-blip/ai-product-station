@@ -100,17 +100,28 @@ def run():
                 target = st.selectbox("切換位置", loc_names)
                 curr = next((l for l in tide_locs if l.get("LocationName") == target), None)
                 if curr:
-                    t_times = curr.get("Time", [])
-                    if t_times:
-                        latest = t_times[0]
+                    # 從 TimePeriods -> Daily -> Time 取得最新一筆潮汐
+                    daily_list = curr.get("TimePeriods", {}).get("Daily", [])
+                    all_times = []
+                    for day in daily_list:
+                        for t in day.get("Time", []):
+                            all_times.append(t)
+                    
+                    if all_times:
+                        # 找最新的（日期最大的）
+                        latest = max(all_times, key=lambda x: x.get("DateTime", ""))
                         st.markdown(f"""
                         <div style="background:#0f1e2d; padding:20px; border-radius:12px; border-left:5px solid #00d4ff; color:white;">
                             <h3 style="margin:0;">📍 {target}</h3>
                             <p style="color:#aaa;">{latest.get('DateTime', '')}</p>
-                            <h1 style="color:#00d4ff; font-size:48px;">{latest.get('TideHeight', '--')} <small style="font-size:20px;">m</small></h1>
+                            <h1 style="color:#00d4ff; font-size:48px;">{latest.get('TideHeight', latest.get('TidalLevel', '--'))} <small style="font-size:20px;">m</small></h1>
                             <p>潮別: {latest.get('Tide', '--')}</p>
                         </div>
                         """, unsafe_allow_html=True)
+                    else:
+                        st.info(f"📍 {target}：暫無潮汐時序資料")
+                else:
+                    st.warning("⚠️ 無法取得該站點資料")
             else:
                 st.warning("⚠️ 未能解析潮汐站點資料")
         else:
