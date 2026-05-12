@@ -7,6 +7,7 @@ from plotly.subplots import make_subplots
 from datetime import datetime
 import google.generativeai as genai
 import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # ==================== UI ====================
 st.set_page_config(page_title="AI券商級看盤系統", layout="wide")
 st.title("📊 課程3 AI券商級看盤系統（選股 + K線 + AI分析）")
