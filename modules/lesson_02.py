@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from datetime import datetime
 import google.generativeai as genai
-
+import urllib3
 # ==================== UI ====================
 st.set_page_config(page_title="AI券商級看盤系統", layout="wide")
 st.title("📊 課程3 AI券商級看盤系統（選股 + K線 + AI分析）")
