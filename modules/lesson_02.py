@@ -63,36 +63,47 @@ st.sidebar.title("🔍 全市場選股")
 
 keyword = st.sidebar.text_input("搜尋股票（名稱 / 代碼）")
 
+# 過濾股票
 if keyword:
     filtered = df_stocks[
-        df_stocks["name"].str.contains(keyword, na=False) |
-        df_stocks["ticker"].str.contains(keyword.upper(), na=False)
+        df_stocks["name"].astype(str).str.contains(keyword, na=False) |
+        df_stocks["ticker"].astype(str).str.contains(keyword.upper(), na=False)
     ]
 else:
     filtered = df_stocks.head(50)
 
+# 沒資料時顯示錯誤
 if filtered.empty:
-    st.sidebar.warning("查無股票")
+    st.sidebar.warning("⚠️ 查無股票資料")
+    st.write("目前 df_stocks 資料：")
+    st.write(df_stocks.head())
+    st.write("資料筆數：", df_stocks.shape)
     st.stop()
 
+# 建立選單（真正綁定 ticker）
 stock_options = {
     f"{row['name']} ({row['ticker']})": row['ticker']
     for _, row in filtered.iterrows()
 }
 
+# 股票選擇
 selected_label = st.sidebar.selectbox(
     "📌 選擇股票",
     list(stock_options.keys())
 )
 
+# 真正 ticker
 selected_ticker = stock_options[selected_label]
 
+# session
 st.session_state.selected_ticker = selected_ticker
 
+# 載入按鈕
 if st.sidebar.button("🚀 載入K線"):
     st.session_state.confirmed = True
 
-st.sidebar.write(f"👉 {selected_ticker}")
+# 顯示目前股票
+st.sidebar.success(f"目前選擇：{selected_ticker}")
 
 # ==================== SAFE FUNCTION ====================
 def safe_float(x):
