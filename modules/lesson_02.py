@@ -46,6 +46,7 @@ def get_twse_all():
             url,
             headers=headers,
             timeout=20
+            verify=False
         )
 
         # 檢查狀態
