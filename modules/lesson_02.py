@@ -33,31 +33,72 @@ st.session_state["google_api_key"] = st.sidebar.text_input(
 # ==================== TWSE 全市場 ====================
 @st.cache_data(ttl=3600)
 def get_twse_all():
+
     url = "https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL"
+
     try:
-        res = requests.get(url, timeout=10)
+
+        headers = {
+            "User-Agent": "Mozilla/5.0"
+        }
+
+        res = requests.get(
+            url,
+            headers=headers,
+            timeout=20
+        )
+
+        # 檢查狀態
+        if res.status_code != 200:
+            st.error(f"TWSE API 狀態錯誤：{res.status_code}")
+            return pd.DataFrame(columns=["name", "ticker"])
+
         data = res.json()
+
+        # 檢查格式
+        if not isinstance(data, list):
+            st.error("TWSE API 回傳格式異常")
+            return pd.DataFrame(columns=["name", "ticker"])
+
         df = pd.DataFrame(data)
 
+        # 自動找欄位
         col_map = {}
+
         for c in df.columns:
-            if "code" in c.lower():
+
+            c_lower = str(c).lower()
+
+            if "code" in c_lower:
                 col_map[c] = "code"
-            if "name" in c.lower():
+
+            if "name" in c_lower:
                 col_map[c] = "name"
 
         df = df.rename(columns=col_map)
+
+        # 檢查必要欄位
+        if "code" not in df.columns or "name" not in df.columns:
+            st.error("TWSE 欄位解析失敗")
+            st.write(df.columns)
+            return pd.DataFrame(columns=["name", "ticker"])
+
+        # 清理資料
         df = df.dropna(subset=["code", "name"])
 
+        # 建立 ticker
         df["ticker"] = df["code"].astype(str) + ".TW"
+
         return df[["name", "ticker"]]
 
-    except:
+    except Exception as e:
+
+        st.error(f"TWSE API 錯誤：{e}")
+
         return pd.DataFrame(columns=["name", "ticker"])
 
 
 df_stocks = get_twse_all()
-
 # ==================== SEARCH ====================
 st.sidebar.title("🔍 全市場選股")
 
