@@ -43,8 +43,18 @@ def run():
         weather_data = safe_fetch("O-A0003-001", cwa_key)
 
     # ═══ 4. 解析邏輯 ═══
+    # ═══ 4. 解析邏輯 ═══
+    import math
+    
+    def haversine(lat1, lon1, lat2, lon2):
+        R = 6371
+        p1, p2 = math.radians(lat1), math.radians(lat2)
+        dp = math.radians(lat2 - lat1)
+        dl = math.radians(lon2 - lon1)
+        a = math.sin(dp/2)**2 + math.cos(p1)*math.cos(p2)*math.sin(dl/2)**2
+        return 2 * R * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    
     def get_tide_locations(raw_data):
-        """專門解析潮汐資料：回傳 Location dict 的 list"""
         if not raw_data:
             return []
         records = raw_data.get("records", {})
@@ -59,15 +69,51 @@ def run():
         return result
 
     def get_weather_stations(raw_data):
-        """專門解析氣象站資料"""
         if not raw_data:
             return []
         records = raw_data.get("records", {})
         stations = records.get("Station", [])
         return stations if isinstance(stations, list) else []
+    
+    def build_weather_index(weather_stats):
+        """建立氣象站索引：list of {name, lat, lon, temp, humidity, wind, weather}"""
+        result = []
+        for s in weather_stats:
+            try:
+                obs = s.get("WeatherElement", {})
+                geo = s.get("GeoInfo", {})
+                coords = geo.get("Coordinates", [])
+                lat = lon = None
+                for c in coords:
+                    if c.get("CoordinateName") == "WGS84":
+                        lat = c.get("StationLatitude")
+                        lon = c.get("StationLongitude")
+                if lat and lon:
+                    result.append({
+                        "name": s.get("StationName"),
+                        "lat": float(lat),
+                        "lon": float(lon),
+                        "temp": obs.get("AirTemperature", "--"),
+                        "humidity": obs.get("RelativeHumidity", "--"),
+                        "wind": obs.get("WindSpeed", "--"),
+                        "weather": obs.get("Weather", "--")
+                    })
+            except:
+                continue
+        return result
+    
+    def find_closest_weather(tide_lat, tide_lon, weather_index):
+        """為潮汐站找最近的氣象站"""
+        if not weather_index:
+            return None
+        closest = min(weather_index, key=lambda w: haversine(tide_lat, tide_lon, w["lat"], w["lon"]))
+        dist = haversine(tide_lat, tide_lon, closest["lat"], closest["lon"])
+        closest["distance_km"] = round(dist, 1)
+        return closest
 
     tide_locs = get_tide_locations(tide_data)
     weather_stats = get_weather_stations(weather_data)
+    weather_index = build_weather_index(weather_stats)
 
     # ═══ 5. 畫面佈局 ═══
     st.title("🌊 台灣海象即時儀表板")
@@ -115,12 +161,33 @@ def run():
                         # 找到當天的 TideRange
                         day_data = next((d for d in daily_list if any(t.get("DateTime","").startswith(d.get("Date","")) for t in [latest])), None)
                         tide_range = day_data.get("TideRange", "") if day_data else ""
+                        
+                        # 找最近氣象站
+                        tide_lat = float(curr.get("Latitude", 0))
+                        tide_lon = float(curr.get("Longitude", 0))
+                        nearby = find_closest_weather(tide_lat, tide_lon, weather_index)
+                        
+                        weather_html = ""
+                        if nearby:
+                            weather_icon = {"晴": "☀️", "陰": "☁️", "雨": "🌧️", "雲": "⛅", "霧": "🌫️"}
+                            icon = "🌡️"
+                            for k, v in weather_icon.items():
+                                if k in str(nearby.get("weather", "")):
+                                    icon = v
+                                    break
+                            weather_html = f"""
+                            <div style="margin-top:12px; padding:10px; background:#0a1628; border-radius:8px; font-size:0.85rem;">
+                                <p style="margin:2px 0;"><b>🌤 最近氣象站：{nearby['name']}</b> ({nearby['distance_km']}km)</p>
+                                <p style="margin:2px 0;">{icon} {nearby['weather']} ｜ 🌡 {nearby['temp']}°C ｜ 💧 {nearby['humidity']}% ｜ 💨 {nearby['wind']} m/s</p>
+                            </div>"""
+                        
                         st.markdown(f"""
                         <div style="background:#0f1e2d; padding:20px; border-radius:12px; border-left:5px solid #00d4ff; color:white;">
                             <h3 style="margin:0;">📍 {target}</h3>
                             <p style="color:#aaa;">{latest.get('DateTime', '')} ｜ 潮差: {tide_range}</p>
                             <h1 style="color:#00d4ff; font-size:48px;">{height} <small style="font-size:20px;">cm</small></h1>
                             <p>潮別: {latest.get('Tide', '--')}</p>
+                            {weather_html}
                         </div>
                         """, unsafe_allow_html=True)
                     else:
