@@ -96,11 +96,14 @@ def run():
         st.title("📮 全台郵遞區號查詢系統")
 
         # ================= 路徑（雲端穩定版） =================
+        base_dir = os.path.dirname(os.path.abspath(__file__))
         xml_file = os.path.join(
-            os.getcwd(),
+            base_dir,
+            "..",
             "data",
             "County_h_10906.xml"
         )
+        xml_file = os.path.normpath(xml_file)
 
         # ================= 檔案存在檢查 =================
         if not os.path.exists(xml_file):
