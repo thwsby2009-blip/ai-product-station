@@ -162,12 +162,19 @@ def run():
                         day_data = next((d for d in daily_list if any(t.get("DateTime","").startswith(d.get("Date","")) for t in [latest])), None)
                         tide_range = day_data.get("TideRange", "") if day_data else ""
                         
-                        # 找最近氣象站
+                        st.markdown(f"""
+                        <div style="background:#0f1e2d; padding:20px; border-radius:12px; border-left:5px solid #00d4ff; color:white;">
+                            <h3 style="margin:0;">📍 {target}</h3>
+                            <p style="color:#aaa;">{latest.get('DateTime', '')} ｜ 潮差: {tide_range}</p>
+                            <h1 style="color:#00d4ff; font-size:48px;">{height} <small style="font-size:20px;">cm</small></h1>
+                            <p>潮別: {latest.get('Tide', '--')}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        # 最近氣象站（獨立顯示，避免 HTML 嵌入問題）
                         tide_lat = float(curr.get("Latitude", 0))
                         tide_lon = float(curr.get("Longitude", 0))
                         nearby = find_closest_weather(tide_lat, tide_lon, weather_index)
-                        
-                        weather_html = ""
                         if nearby:
                             weather_icon = {"晴": "☀️", "陰": "☁️", "雨": "🌧️", "雲": "⛅", "霧": "🌫️"}
                             icon = "🌡️"
@@ -175,21 +182,12 @@ def run():
                                 if k in str(nearby.get("weather", "")):
                                     icon = v
                                     break
-                            weather_html = f"""
-                            <div style="margin-top:12px; padding:10px; background:#0a1628; border-radius:8px; font-size:0.85rem;">
+                            st.markdown(f"""
+                            <div style="margin-top:4px; padding:10px; background:#0a1628; border-radius:8px; font-size:0.85rem; border:1px solid #1e3a5f;">
                                 <p style="margin:2px 0;"><b>🌤 最近氣象站：{nearby['name']}</b> ({nearby['distance_km']}km)</p>
                                 <p style="margin:2px 0;">{icon} {nearby['weather']} ｜ 🌡 {nearby['temp']}°C ｜ 💧 {nearby['humidity']}% ｜ 💨 {nearby['wind']} m/s</p>
-                            </div>"""
-                        
-                        st.markdown(f"""
-                        <div style="background:#0f1e2d; padding:20px; border-radius:12px; border-left:5px solid #00d4ff; color:white;">
-                            <h3 style="margin:0;">📍 {target}</h3>
-                            <p style="color:#aaa;">{latest.get('DateTime', '')} ｜ 潮差: {tide_range}</p>
-                            <h1 style="color:#00d4ff; font-size:48px;">{height} <small style="font-size:20px;">cm</small></h1>
-                            <p>潮別: {latest.get('Tide', '--')}</p>
-                            {weather_html}
-                        </div>
-                        """, unsafe_allow_html=True)
+                            </div>
+                            """, unsafe_allow_html=True)
                     else:
                         st.info(f"📍 {target}：暫無潮汐時序資料")
                 else:
