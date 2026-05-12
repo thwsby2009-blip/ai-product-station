@@ -93,7 +93,7 @@ def run():
     # ═════════════════════════════
     elif mode == "📮 郵遞查詢":
 
-    st.title    ("📮 全台郵遞區號查詢系統")
+        st.title("📮 全台郵遞區號查詢系統")
 
     import os
     import xml.etree.ElementTree as ET
