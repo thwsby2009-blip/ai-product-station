@@ -95,7 +95,7 @@ def run():
     # --- 模式：郵遞查詢 (讀取外部 XML 檔案) ---
     elif mode == "📮 郵遞查詢":
         st.title("📮 全台郵遞區號查詢系統")
-        xml_file = "County_h_10906.xml"
+        xml_file = "data/County_h_10906.xml"
         
         if os.path.exists(xml_file):
             try:
