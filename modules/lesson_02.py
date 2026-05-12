@@ -7,7 +7,7 @@ from plotly.subplots import make_subplots
 from datetime import datetime
 import google.generativeai as genai
 import urllib3
-
+def run():  # <--- 加上這一行
 # 關閉 SSL 警告
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
