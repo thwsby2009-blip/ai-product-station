@@ -183,9 +183,9 @@ def run():
                                     icon = v
                                     break
                             st.markdown(f"""
-                            <div style="margin-top:4px; padding:10px; background:#0a1628; border-radius:8px; font-size:0.85rem; border:1px solid #1e3a5f;">
-                                <p style="margin:2px 0;"><b>🌤 最近氣象站：{nearby['name']}</b> ({nearby['distance_km']}km)</p>
-                                <p style="margin:2px 0;">{icon} {nearby['weather']} ｜ 🌡 {nearby['temp']}°C ｜ 💧 {nearby['humidity']}% ｜ 💨 {nearby['wind']} m/s</p>
+                            <div style="margin-top:4px; padding:10px; background:#0a1628; border-radius:8px; font-size:0.85rem; border:1px solid #1e3a5f; color:#e2e8f0;">
+                                <p style="margin:2px 0; color:#e2e8f0;"><b style="color:#fbbf24;">🌤 最近氣象站：{nearby['name']}</b> <span style="color:#94a3b8;">({nearby['distance_km']}km)</span></p>
+                                <p style="margin:2px 0; color:#cbd5e1;">{icon} {nearby['weather']} ｜ 🌡 {nearby['temp']}°C ｜ 💧 {nearby['humidity']}% ｜ 💨 {nearby['wind']} m/s</p>
                             </div>
                             """, unsafe_allow_html=True)
                     else:
