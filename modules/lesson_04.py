@@ -159,7 +159,7 @@ for item in root.findall('County_h_10906'):
 for d in districts[:5]:
     print(f"郵遞區號: {d['zip']} | 行政區: {d['name']}")
 
-    # --- 模式：今日匯率 ---
+   # --- 模式：今日匯率 ---
     elif mode == "💹 今日匯率":
         st.title("💹 即時外幣匯率 (TWD)")
         try:
