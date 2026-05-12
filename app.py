@@ -12,9 +12,9 @@ st.set_page_config(page_title="AI 課程", layout="wide")
 # 1️⃣ 選項對照表
 options = {
     "1. AI 產品設計全流程工作站": "modules.lesson_0",
-    "2. AI 數據分析": "modules.lesson_1",
-    "3. 金流數據分析": "modules.lesson_02",
-    "4. 4/27 AI整合": "modules.lesson_427",
+    "2. AI 分析數據": "modules.lesson_1",
+    "3. AI 金流數據分析": "modules.lesson_02",
+    "4. AI 數據分析": "modules.lesson_427",
     "5. Google Colab 雲端程式開發": "modules.colab"
 }
 
