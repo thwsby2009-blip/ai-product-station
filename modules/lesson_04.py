@@ -47,7 +47,7 @@ def run():
     # --- 模式：智能對話 (使用 Google Gemini) ---
     if mode == "💬 智能對話":
         st.title("💬 小龍蝦 AI 智慧對話")
-        st.caption("基於 Gemini-2.0-flash 模型")
+        st.caption("基於 Gemini-2.5-flash 模型")
 
         for msg in st.session_state.messages:
             with st.chat_message(msg["role"]):
@@ -63,7 +63,7 @@ def run():
                     st.warning("⚠️ 請先在左側欄位輸入 Google API Key")
                 else:
                     try:
-                        model = genai.GenerativeModel("gemini-2.0-flash")
+                        model = genai.GenerativeModel("gemini-2.5-flash")
                         # 轉換歷史紀錄格式以符合 Gemini SDK 要求
                         history = [
                             {"role": "user" if m["role"] == "user" else "model", "parts": [m["content"]]} 
@@ -184,7 +184,7 @@ def run():
             else:
                 with st.spinner("正在觀測星象中..."):
                     try:
-                        model = genai.GenerativeModel("gemini-2.0-flash")
+                        model = genai.GenerativeModel("gemini-2.5-flash")
                         prompt = f"請以專業占星師的口吻，為{z}寫一段今日運勢，包含整體指數、工作、財運、感情，建議用繁體中文，約 200 字。"
                         response = model.generate_content(prompt)
                         st.success(response.text)
