@@ -92,7 +92,6 @@ def run():
                     st.markdown(n['desc'], unsafe_allow_html=True)
                     st.link_button("🚀 閱讀原文", n['link'], use_container_width=True)
 
-    # --- 模式：郵遞查詢 (讀取外部 XML 檔案) ---
 elif mode == "📮 郵遞查詢":
 
     st.title("📮 全台郵遞區號查詢系統")
@@ -100,7 +99,6 @@ elif mode == "📮 郵遞查詢":
     import os
     import xml.etree.ElementTree as ET
 
-    # 雲端穩定路徑
     xml_file = os.path.join(
         os.getcwd(),
         "data",
@@ -110,13 +108,12 @@ elif mode == "📮 郵遞查詢":
     if os.path.exists(xml_file):
 
         try:
-            # 動態解析 XML
+
             tree = ET.parse(xml_file)
             root = tree.getroot()
 
             data = []
 
-            # 遍歷 XML
             for item in root.findall('.//County_h_10906'):
                 data.append({
                     "郵遞區號": item.findtext('欄位1'),
@@ -125,6 +122,12 @@ elif mode == "📮 郵遞查詢":
                 })
 
             df = pd.DataFrame(data)
+
+        except Exception as e:
+            st.error(f"XML錯誤: {e}")
+
+    else:
+        st.error(f"找不到檔案: {xml_file}")
 
             # ================= 搜尋功能 =================
             keyword = st.text_input("🔍 輸入區名或郵遞區號進行搜尋")
