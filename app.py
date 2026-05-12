@@ -15,7 +15,8 @@ options = {
     "2. AI 分析數據": "modules.lesson_1",
     "3. AI 金流數據分析": "modules.lesson_02",
     "4. AI 數據分析": "modules.lesson_03",
-    "5. AI 網頁功能協助開發": "modules.lesson_04"
+    "5. AI 網頁功能協助開發": "modules.lesson_04",
+    "6. 🌊 台灣海象即時儀表板": "modules.lesson_05"
 }
 
 # 2️⃣ UI 介面
