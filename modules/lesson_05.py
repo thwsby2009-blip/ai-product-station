@@ -110,11 +110,16 @@ def run():
                     if all_times:
                         # 找最新的（日期最大的）
                         latest = max(all_times, key=lambda x: x.get("DateTime", ""))
+                        tide_h = latest.get("TideHeights", {})
+                        height = tide_h.get("AboveLocalMSL", tide_h.get("AboveTWVD", "--"))
+                        # 找到當天的 TideRange
+                        day_data = next((d for d in daily_list if any(t.get("DateTime","").startswith(d.get("Date","")) for t in [latest])), None)
+                        tide_range = day_data.get("TideRange", "") if day_data else ""
                         st.markdown(f"""
                         <div style="background:#0f1e2d; padding:20px; border-radius:12px; border-left:5px solid #00d4ff; color:white;">
                             <h3 style="margin:0;">📍 {target}</h3>
-                            <p style="color:#aaa;">{latest.get('DateTime', '')}</p>
-                            <h1 style="color:#00d4ff; font-size:48px;">{latest.get('TideHeight', latest.get('TidalLevel', '--'))} <small style="font-size:20px;">m</small></h1>
+                            <p style="color:#aaa;">{latest.get('DateTime', '')} ｜ 潮差: {tide_range}</p>
+                            <h1 style="color:#00d4ff; font-size:48px;">{height} <small style="font-size:20px;">cm</small></h1>
                             <p>潮別: {latest.get('Tide', '--')}</p>
                         </div>
                         """, unsafe_allow_html=True)
