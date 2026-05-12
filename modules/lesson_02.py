@@ -75,14 +75,17 @@ if filtered.empty:
     st.sidebar.warning("查無股票")
     st.stop()
 
+stock_options = {
+    f"{row['name']} ({row['ticker']})": row['ticker']
+    for _, row in filtered.iterrows()
+}
+
 selected_label = st.sidebar.selectbox(
     "📌 選擇股票",
-    filtered["name"] + " (" + filtered["ticker"] + ")"
+    list(stock_options.keys())
 )
 
-selected_ticker = filtered[
-    filtered["name"] == selected_label.split(" (")[0]
-]["ticker"].values[0]
+selected_ticker = stock_options[selected_label]
 
 st.session_state.selected_ticker = selected_ticker
 
