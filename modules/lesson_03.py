@@ -11,11 +11,24 @@ import platform
 
 def run():
     # ═══ 0. 環境設定 (字體處理) ═══
-    # 解決 Linux 伺服器沒有微軟正黑體的問題
-    if platform.system() == "Windows":
-        plt.rcParams["font.family"] = ["Microsoft JhengHei"]
-    else:
-        plt.rcParams["font.family"] = ["DejaVu Sans"] # Linux 通用字體
+    # 支援中文顯示（Windows + Linux 通用）
+    import warnings
+    warnings.filterwarnings("ignore", message="findfont: Font family.*not found")
+    
+    # 下載 Noto Sans TC 字體（如果沒有）
+    import urllib.request
+    _font_dir = os.path.expanduser("~/.fonts")
+    _font_path = os.path.join(_font_dir, "NotoSansTC-Regular.ttf")
+    if not os.path.exists(_font_path):
+        os.makedirs(_font_dir, exist_ok=True)
+        urllib.request.urlretrieve(
+            "https://github.com/google/fonts/raw/main/ofl/notosanstc/NotoSansTC%5Bwght%5D.ttf",
+            _font_path
+        )
+    
+    from matplotlib.font_manager import FontProperties
+    _chinese_font = FontProperties(fname=_font_path)
+    
     plt.rcParams["axes.unicode_minus"] = False 
 
     st.title("🎓 Lesson 03: Pandas 全流程實作與進階視覺化")
@@ -98,9 +111,9 @@ def run():
         tips = sns.load_dataset("tips")
         fig_sns, axes = plt.subplots(1, 2, figsize=(12, 5))
         sns.boxplot(data=tips, x="day", y="total_bill", ax=axes[0], palette="Greens")
-        axes[0].set_title("各星期消費分布 (箱型圖)")
+        axes[0].set_title("各星期消費分布 (箱型圖)", fontproperties=_chinese_font)
         sns.violinplot(data=tips, x="sex", y="tip", ax=axes[1], palette="Set2")
-        axes[1].set_title("男女小費分布 (小提琴圖)")
+        axes[1].set_title("男女小費分布 (小提琴圖)", fontproperties=_chinese_font)
         st.pyplot(fig_sns)
     except:
         st.warning("⚠️ 無法連線載入 Seaborn 內建資料集，跳過此練習。")
@@ -114,17 +127,17 @@ def run():
     # 上方折線圖
     ax1 = fig_dash.add_subplot(grid[0, :])
     ax1.plot(range(1, 13), np.random.randint(80, 150, 12), "b-o", label="實際銷售")
-    ax1.set_title("月度銷售趨勢")
+    ax1.set_title("月度銷售趨勢", fontproperties=_chinese_font)
     
     # 左下長條圖
     ax2 = fig_dash.add_subplot(grid[1, 0])
     ax2.bar(["北", "中", "南"], [450, 380, 410], color="skyblue")
-    ax2.set_title("區域績效")
+    ax2.set_title("區域績效", fontproperties=_chinese_font)
     
     # 右下圓餅圖
     ax3 = fig_dash.add_subplot(grid[1, 1])
     ax3.pie([35, 25, 40], labels=["A", "B", "C"], autopct="%1.1f%%")
-    ax3.set_title("產品占比")
+    ax3.set_title("產品占比", fontproperties=_chinese_font)
     
     plt.tight_layout()
     st.pyplot(fig_dash)
