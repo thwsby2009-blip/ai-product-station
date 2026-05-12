@@ -97,7 +97,6 @@ def run():
 
         # ================= 路徑（雲端穩定版） =================
         base_dir = os.path.dirname(os.path.abspath(__file__))
-        st.write(f"🔍 base_dir = {base_dir}")
         xml_file = os.path.join(
             base_dir,
             "..",
@@ -105,7 +104,6 @@ def run():
             "County_h_10906.xml"
         )
         xml_file = os.path.normpath(xml_file)
-        st.write(f"🔍 xml_file = {xml_file}")
 
         # ================= 檔案存在檢查 =================
         if not os.path.exists(xml_file):
@@ -114,13 +112,19 @@ def run():
 
         # ================= XML 解析 =================
         try:
-            tree = ET.parse(xml_file)
-            root = tree.getroot()
+            # 讀取檔案，跳過第一行（瀏覽器加的提示文字）
+            with open(xml_file, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+            # 跳過非 XML 的第一行
+            xml_content = "".join(
+                line for line in lines if not line.startswith("This XML file")
+            )
+            root = ET.fromstring(xml_content)
 
             data = []
 
             # 你的 XML 結構：直接 children 就是 County_h_10906
-            for item in root.findall("./County_h_10906"):
+            for item in root.findall("County_h_10906"):
                 data.append({
                     "郵遞區號": item.findtext("欄位1"),
                     "行政區": item.findtext("欄位2"),
