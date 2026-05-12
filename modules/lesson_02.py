@@ -24,7 +24,6 @@ if "google_api_key" not in st.session_state:
 
 # ==================== GOOGLE API KEY ====================
 st.sidebar.title("🔑 AI設定（Google Gemini）")
-
 st.session_state["google_api_key"] = st.sidebar.text_input(
     "請輸入 Google API Key",
     type="password",
