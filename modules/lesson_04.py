@@ -132,7 +132,7 @@ def run():
                 st.info("👈 請點擊獲取情報並選擇新聞")
 
     # --- 模式：郵遞查詢 ---
-   import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET
 
 xml_data = """你的 XML 內容..."""
 
