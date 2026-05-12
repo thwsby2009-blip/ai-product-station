@@ -9,8 +9,6 @@ import google.generativeai as genai
 import urllib3
 def run():  # <--- 加上這一行
 # 關閉 SSL 警告
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
 # ==================== UI ====================
 st.set_page_config(
     page_title="AI券商級看盤系統",
