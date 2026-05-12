@@ -93,7 +93,7 @@ def run():
                     st.link_button("🚀 閱讀原文", n['link'], use_container_width=True)
 
     # --- 模式：郵遞查詢 (讀取外部 XML 檔案) ---
-    elif mode == "📮 郵遞查詢":
+elif mode == "📮 郵遞查詢":
     st.title("📮 全台郵遞區號查詢系統")
 
     import os
