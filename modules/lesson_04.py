@@ -94,46 +94,66 @@ def run():
 
     # --- 模式：郵遞查詢 (讀取外部 XML 檔案) ---
     elif mode == "📮 郵遞查詢":
-        st.title("📮 全台郵遞區號查詢系統")
-     import os
 
-xml_file = os.path.join(
-    os.getcwd(),
-    "data",
-    "County_h_10906.xml"
-)
-        
-                # 動態解析 XML
-                tree = ET.parse(xml_file)
-                root = tree.getroot()
-                
-                data = []
-                # 遍歷 XML 內的所有節點
-                for item in root.findall('.//County_h_10906'):
-                    data.append({
-                        "郵遞區號": item.findtext('欄位1'),
-                        "行政區": item.findtext('欄位2'),
-                        "英文名稱": item.findtext('欄位3')
-                    })
-                
-                df = pd.DataFrame(data)
-                
-                # 搜尋介面
-                keyword = st.text_input("🔍 輸入區名或郵遞區號進行搜尋")
-                if keyword:
-                    # 使用 apply 搜尋整列，只要任一欄位包含關鍵字就顯示
-                    filtered_df = df[df.apply(lambda r: r.astype(str).str.contains(keyword).any(), axis=1)]
-                    st.success(f"找到 {len(filtered_df)} 筆結果")
-                    st.dataframe(filtered_df, use_container_width=True)
-                else:
-                    st.dataframe(df, use_container_width=True)
-                    
-            except Exception as e:
-                st.error(f"讀取 XML 發生錯誤: {e}")
-        else:
-            st.error(f"找不到檔案: {xml_file}")
-            st.info("請確認該 XML 檔案已放在程式碼所在的資料夾中。")
+    st.title("📮 全台郵遞區號查詢系統")
 
+    import os
+    import xml.etree.ElementTree as ET
+
+    # 雲端穩定路徑
+    xml_file = os.path.join(
+        os.getcwd(),
+        "data",
+        "County_h_10906.xml"
+    )
+
+    if os.path.exists(xml_file):
+
+        try:
+            # 動態解析 XML
+            tree = ET.parse(xml_file)
+            root = tree.getroot()
+
+            data = []
+
+            # 遍歷 XML
+            for item in root.findall('.//County_h_10906'):
+                data.append({
+                    "郵遞區號": item.findtext('欄位1'),
+                    "行政區": item.findtext('欄位2'),
+                    "英文名稱": item.findtext('欄位3')
+                })
+
+            df = pd.DataFrame(data)
+
+            # ================= 搜尋功能 =================
+            keyword = st.text_input("🔍 輸入區名或郵遞區號進行搜尋")
+
+            if keyword:
+
+                filtered_df = df[
+                    df.apply(
+                        lambda r: r.astype(str).str.contains(keyword).any(),
+                        axis=1
+                    )
+                ]
+
+                st.success(f"找到 {len(filtered_df)} 筆結果")
+                st.dataframe(filtered_df, use_container_width=True)
+
+            else:
+
+                st.dataframe(df, use_container_width=True)
+
+        except Exception as e:
+
+            st.error(f"讀取 XML 發生錯誤: {e}")
+
+    else:
+
+        st.error(f"找不到檔案: {xml_file}")
+
+        st.info("請確認 XML 已放在 data/ 資料夾中")
     # --- 模式：今日匯率 ---
     elif mode == "💹 今日匯率":
         st.title("💹 即時外幣匯率 (TWD)")
