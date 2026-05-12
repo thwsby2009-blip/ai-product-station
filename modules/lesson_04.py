@@ -132,43 +132,32 @@ def run():
                 st.info("👈 請點擊獲取情報並選擇新聞")
 
     # --- 模式：郵遞查詢 ---
-    elif mode == "📮 郵遞查詢":
-        st.title("📮 郵遞區號快速查詢")
-        
-        # 1. 確認檔案路徑
-        file_path = "data/County_h_10906.xml"
-        
-        if os.path.exists(file_path):
-            try:
-                # 2. 讀取 XML 內容
-                with open(file_path, "r", encoding="utf-8") as f:
-                    xml_content = f.read()
-                
-                # 3. 使用 re.findall 抓取所有縣市名稱 (假設標籤為 <COUNTYNAME>)
-                import re
-                counties = re.findall(r'<COUNTYNAME>(.*?)</COUNTYNAME>', xml_content)
-                
-                # 去除重複項並排序
-                unique_counties = sorted(list(set(counties)))
-                
-                if unique_counties:
-                    st.success(f"✅ 成功從地圖資料中解析出 {len(unique_counties)} 個縣市")
-                    
-                    # 4. 讓使用者選擇縣市
-                    selected_county = st.selectbox("請選擇縣市：", unique_counties)
-                    
-                    # 5. 這裡可以串接你的郵遞區號邏輯
-                    # 範例：簡單顯示選擇結果
-                    st.write(f"你選擇了：**{selected_county}**")
-                    st.info(f"💡 接下來可以根據 {selected_county} 進行區域定位或郵遞區號細分。")
-                else:
-                    st.warning("⚠️ 檔案讀取成功，但找不到縣市名稱標籤，請確認 XML 結構。")
-                    
-            except Exception as e:
-                st.error(f"❌ 檔案解析失敗：{e}")
-        else:
-            st.error(f"❌ 找不到檔案：{file_path}")
-            st.info("請確認你已經將 County_h_10906.xml 放入 data 資料夾中。")
+   import xml.etree.ElementTree as ET
+
+xml_data = """你的 XML 內容..."""
+
+# 解析 XML
+root = ET.fromstring(xml_data)
+
+# 建立一個清單來儲存結果
+districts = []
+
+# 修正：迭代節點名稱必須為 'County_h_10906'
+for item in root.findall('County_h_10906'):
+    # 修正：欄位名稱必須對應 XML 內的 <欄位1>, <欄位2>, <欄位3>
+    zip_code = item.find('欄位1').text if item.find('欄位1') is not None else ""
+    name_tw  = item.find('欄位2').text if item.find('欄位2') is not None else ""
+    name_en  = item.find('欄位3').text if item.find('欄位3') is not None else ""
+    
+    districts.append({
+        "zip": zip_code,
+        "name": name_tw,
+        "english": name_en
+    })
+
+# 測試輸出前幾筆
+for d in districts[:5]:
+    print(f"郵遞區號: {d['zip']} | 行政區: {d['name']}")
 
     # --- 模式：今日匯率 ---
     elif mode == "💹 今日匯率":
